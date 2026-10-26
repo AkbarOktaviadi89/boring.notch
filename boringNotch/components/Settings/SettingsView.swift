@@ -51,6 +51,9 @@ struct SettingsView: View {
                 NavigationLink(value: "Shelf") {
                     Label("Shelf", systemImage: "books.vertical")
                 }
+                NavigationLink(value: "Focus") {
+                    Label("Focus", systemImage: "timer")
+                }
                 NavigationLink(value: "Shortcuts") {
                     Label("Shortcuts", systemImage: "keyboard")
                 }
@@ -85,6 +88,8 @@ struct SettingsView: View {
                     Charge()
                 case "Shelf":
                     Shelf()
+                case "Focus":
+                    FocusSettings()
                 case "Shortcuts":
                     Shortcuts()
                 case "Extensions":
@@ -909,8 +914,63 @@ struct About: View {
     }
 }
 
+struct FocusSettings: View {
+    @ObservedObject var focus = FocusTimerManager.shared
+    @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @Default(.focusTimerEnabled) var focusTimerEnabled
+    @Default(.focusTimerDuration) var focusTimerDuration
+
+    var body: some View {
+        Form {
+            Section {
+                Defaults.Toggle(key: .focusTimerEnabled) {
+                    Text("Enable focus timer")
+                }
+                .onChange(of: focusTimerEnabled) { _, enabled in
+                    if !enabled {
+                        focus.reset()
+                        if coordinator.currentView == .focus {
+                            coordinator.currentView = .home
+                        }
+                    }
+                }
+                Defaults.Toggle(key: .focusTimerLiveActivity) {
+                    Text("Show remaining time on closed notch")
+                }
+                .disabled(!focusTimerEnabled)
+                Defaults.Toggle(key: .focusTimerSound) {
+                    Text("Play sound when a session ends")
+                }
+                .disabled(!focusTimerEnabled)
+            } header: {
+                Text("General")
+            }
+
+            Section {
+                Stepper(
+                    value: Binding(
+                        get: { focusTimerDuration },
+                        set: { focus.setDuration(minutes: $0) }
+                    ),
+                    in: FocusTimerManager.minDuration...FocusTimerManager.maxDuration
+                ) {
+                    Text("Session length: \(focusTimerDuration) min")
+                }
+                .disabled(!focusTimerEnabled || focus.isActive)
+            } header: {
+                Text("Duration")
+            } footer: {
+                Text("The length can't be changed while a session is running or paused.")
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+        }
+        .navigationTitle("Focus")
+    }
+}
+
 struct Shelf: View {
-    
+
     @Default(.shelfTapToOpen) var shelfTapToOpen: Bool
     @Default(.quickShareProvider) var quickShareProvider
     @Default(.expandedDragDetection) var expandedDragDetection: Bool

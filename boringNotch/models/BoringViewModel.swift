@@ -213,6 +213,8 @@ class BoringViewModel: NSObject, ObservableObject {
         // Otherwise, if the user has not enabled openLastShelfByDefault, set the view to home
     if !ShelfStateViewModel.shared.isEmpty && Defaults[.openShelfByDefault] {
             coordinator.currentView = .shelf
+        } else if Defaults[.focusTimerEnabled] && FocusTimerManager.shared.state != .idle {
+            coordinator.currentView = .focus
         } else if !coordinator.openLastTabByDefault {
             coordinator.currentView = .home
         }
