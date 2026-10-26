@@ -109,6 +109,40 @@ class BoringNotchSkyLightWindow: NSPanel {
     
     private var observers: Set<AnyCancellable> = []
     
-    override var canBecomeKey: Bool { false }
+    override var canBecomeKey: Bool { NotchKeyboardFocus.isActive }
     override var canBecomeMain: Bool { false }
+}
+
+/// Lets the notch window take keyboard input only while a view with a text field is showing.
+/// The window is a non-activating panel, so the app the user was in stays frontmost.
+/// The window only becomes key when the user clicks into it, and key focus is handed
+/// back to the previous app when typing ends.
+@MainActor
+enum NotchKeyboardFocus {
+    private(set) static var isActive = false
+    private static var previousApp: NSRunningApplication?
+
+    /// Must be called before the click: AppKit asks `canBecomeKey` on mouse down,
+    /// so allowing it from the click itself is too late.
+    static func allow() {
+        guard !isActive else { return }
+        previousApp = NSWorkspace.shared.frontmostApplication
+        isActive = true
+    }
+
+    /// Gives the keyboard back to the previous app but keeps the window allowed to take it again
+    static func returnKeyboard(from window: NSWindow?) {
+        guard let window, window.isKeyWindow else { return }
+        window.makeFirstResponder(nil)
+        if let previousApp, previousApp != NSRunningApplication.current {
+            previousApp.activate()
+        }
+    }
+
+    static func end(in window: NSWindow?) {
+        guard isActive else { return }
+        returnKeyboard(from: window)
+        isActive = false
+        previousApp = nil
+    }
 }

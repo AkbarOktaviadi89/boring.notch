@@ -18,13 +18,15 @@ struct TabModel: Identifiable {
 let tabs = [
     TabModel(label: "Home", icon: "house.fill", view: .home),
     TabModel(label: "Shelf", icon: "tray.fill", view: .shelf),
-    TabModel(label: "Focus", icon: "timer", view: .focus)
+    TabModel(label: "Focus", icon: "timer", view: .focus),
+    TabModel(label: "To-do", icon: "checklist", view: .todo)
 ]
 
 struct TabSelectionView: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Default(.boringShelf) var boringShelf
     @Default(.focusTimerEnabled) var focusTimerEnabled
+    @Default(.todoEnabled) var todoEnabled
     @Namespace var animation
 
     private var visibleTabs: [TabModel] {
@@ -33,6 +35,7 @@ struct TabSelectionView: View {
             case .home: return true
             case .shelf: return boringShelf
             case .focus: return focusTimerEnabled
+            case .todo: return todoEnabled
             }
         }
     }

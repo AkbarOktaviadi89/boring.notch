@@ -179,6 +179,10 @@ extension Defaults.Keys {
     static let focusCompletedCount = Key<Int>("focusCompletedCount", default: 0)
     static let focusCompletedDate = Key<Date>("focusCompletedDate", default: .distantPast)
 
+    // MARK: To-do
+    static let todoEnabled = Key<Bool>("todoEnabled", default: true)
+    static let todoItems = Key<[TodoItem]>("todoItems", default: [])
+
     // MARK: Calendar
     static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)
     static let hideAllDayEvents = Key<Bool>("hideAllDayEvents", default: false)

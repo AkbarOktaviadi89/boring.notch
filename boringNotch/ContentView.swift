@@ -366,6 +366,8 @@ struct ContentView: View {
                         ShelfView()
                     case .focus:
                         FocusTimerView()
+                    case .todo:
+                        TodoView()
                     }
                 }
                 .transition(

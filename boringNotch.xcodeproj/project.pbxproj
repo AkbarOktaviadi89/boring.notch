@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		FC0000000000000000000007 /* TodoManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000006 /* TodoManager.swift */; };
+		FC0000000000000000000009 /* TodoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000008 /* TodoView.swift */; };
 		FC0000000000000000000002 /* FocusTimerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000001 /* FocusTimerManager.swift */; };
 		FC0000000000000000000004 /* FocusTimerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000003 /* FocusTimerView.swift */; };
 		1100290C2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100290B2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift */; };
@@ -183,6 +185,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		FC0000000000000000000006 /* TodoManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoManager.swift; sourceTree = "<group>"; };
+		FC0000000000000000000008 /* TodoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoView.swift; sourceTree = "<group>"; };
 		FC0000000000000000000001 /* FocusTimerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusTimerManager.swift; sourceTree = "<group>"; };
 		FC0000000000000000000003 /* FocusTimerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusTimerView.swift; sourceTree = "<group>"; };
 		1100290B2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSItemProvider+LoadHelpers.swift"; sourceTree = "<group>"; };
@@ -361,6 +365,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		FC000000000000000000000A /* Todo */ = {
+			isa = PBXGroup;
+			children = (
+				FC0000000000000000000008 /* TodoView.swift */,
+			);
+			path = Todo;
+			sourceTree = "<group>";
+		};
 		FC0000000000000000000005 /* Focus */ = {
 			isa = PBXGroup;
 			children = (
@@ -507,6 +519,7 @@
 				B18654302C6F4590000B926A /* Settings */,
 				B186542F2C6F455E000B926A /* Notch */,
 				9A0887332C7AFF7E00C160EA /* Tabs */,
+				FC000000000000000000000A /* Todo */,
 				FC0000000000000000000005 /* Focus */,
 				B186542E2C6F453B000B926A /* Music */,
 				14D570BF2C5EA5870011E668 /* AnimatedFace.swift */,
@@ -527,6 +540,7 @@
 				F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */,
 				112FB7342CCF16F70015238C /* NotchSpaceManager.swift */,
 				147163992C5D35FF0068B555 /* MusicManager.swift */,
+				FC0000000000000000000006 /* TodoManager.swift */,
 				FC0000000000000000000001 /* FocusTimerManager.swift */,
 				149E0B962C737D00006418B1 /* WebcamManager.swift */,
 				14C08BB52C8DE42D000F8AA0 /* CalendarManager.swift */,
@@ -967,6 +981,8 @@
 				14C08BC12C8E03AD000F8AA0 /* NSImage+Extensions.swift in Sources */,
 				149E0B9A2C737D40006418B1 /* WebcamView.swift in Sources */,
 				1471639A2C5D35FF0068B555 /* MusicManager.swift in Sources */,
+				FC0000000000000000000007 /* TodoManager.swift in Sources */,
+				FC0000000000000000000009 /* TodoView.swift in Sources */,
 				FC0000000000000000000002 /* FocusTimerManager.swift in Sources */,
 				FC0000000000000000000004 /* FocusTimerView.swift in Sources */,
 				B1B112932C6A577E00093D8F /* MouseTracker.swift in Sources */,

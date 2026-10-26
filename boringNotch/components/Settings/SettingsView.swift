@@ -54,6 +54,9 @@ struct SettingsView: View {
                 NavigationLink(value: "Focus") {
                     Label("Focus", systemImage: "timer")
                 }
+                NavigationLink(value: "To-do") {
+                    Label("To-do", systemImage: "checklist")
+                }
                 NavigationLink(value: "Shortcuts") {
                     Label("Shortcuts", systemImage: "keyboard")
                 }
@@ -90,6 +93,8 @@ struct SettingsView: View {
                     Shelf()
                 case "Focus":
                     FocusSettings()
+                case "To-do":
+                    TodoSettings()
                 case "Shortcuts":
                     Shortcuts()
                 case "Extensions":
@@ -966,6 +971,43 @@ struct FocusSettings: View {
             }
         }
         .navigationTitle("Focus")
+    }
+}
+
+struct TodoSettings: View {
+    @ObservedObject var todo = TodoManager.shared
+    @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @Default(.todoEnabled) var todoEnabled
+
+    var body: some View {
+        Form {
+            Section {
+                Defaults.Toggle(key: .todoEnabled) {
+                    Text("Enable to-do list")
+                }
+                .onChange(of: todoEnabled) { _, enabled in
+                    if !enabled && coordinator.currentView == .todo {
+                        coordinator.currentView = .home
+                    }
+                }
+            } header: {
+                Text("General")
+            }
+
+            Section {
+                HStack {
+                    Text("\(todo.remainingCount) open, \(todo.items.count - todo.remainingCount) done")
+                    Spacer()
+                    Button("Clear completed") {
+                        todo.clearCompleted()
+                    }
+                    .disabled(!todo.hasCompleted)
+                }
+            } header: {
+                Text("Tasks")
+            }
+        }
+        .navigationTitle("To-do")
     }
 }
 
