@@ -1035,6 +1035,8 @@ struct TodoSettings: View {
     @ObservedObject var todo = TodoManager.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Default(.todoEnabled) var todoEnabled
+    @Default(.todoReminderEnabled) var reminderEnabled
+    @Default(.todoReminderMinutes) var reminderMinutes
 
     var body: some View {
         Form {
@@ -1063,8 +1065,50 @@ struct TodoSettings: View {
             } header: {
                 Text("Tasks")
             }
+
+            Section {
+                Defaults.Toggle(key: .todoReminderEnabled) {
+                    Text("Remind me about tasks still open today")
+                }
+                DatePicker("Time", selection: reminderTime, displayedComponents: .hourAndMinute)
+                    .disabled(!reminderEnabled)
+                Defaults.Toggle(key: .todoReminderRepeat) {
+                    Text("Remind again every hour until done")
+                }
+                .disabled(!reminderEnabled)
+                Defaults.Toggle(key: .todoReminderSystemNotification) {
+                    Text("Also send a macOS notification")
+                }
+                .disabled(!reminderEnabled)
+                HStack {
+                    Spacer()
+                    Button("Test reminder") {
+                        TodoReminder.shared.showTest()
+                    }
+                }
+            } header: {
+                Text("Reminder")
+            } footer: {
+                Text("At this time, if tasks due today or overdue are still open, the closed notch shows how many for a few seconds; open the notch then to go straight to Today. The notification stays in Notification Center. Missed while the Mac was asleep? It shows when it wakes. Hourly repeats stop at 22:00.")
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+            .disabled(!todoEnabled)
         }
         .navigationTitle("To-do")
+    }
+
+    /// The reminder is stored as minutes after midnight; the picker works with a date today
+    private var reminderTime: Binding<Date> {
+        Binding(
+            get: {
+                Calendar.current.date(byAdding: .minute, value: reminderMinutes, to: Calendar.current.startOfDay(for: Date())) ?? Date()
+            },
+            set: { date in
+                let parts = Calendar.current.dateComponents([.hour, .minute], from: date)
+                reminderMinutes = (parts.hour ?? 0) * 60 + (parts.minute ?? 0)
+            }
+        )
     }
 }
 

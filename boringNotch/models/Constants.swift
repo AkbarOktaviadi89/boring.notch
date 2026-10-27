@@ -190,6 +190,13 @@ extension Defaults.Keys {
     // MARK: To-do
     static let todoEnabled = Key<Bool>("todoEnabled", default: true)
     static let todoItems = Key<[TodoItem]>("todoItems", default: [])
+    static let todoFilter = Key<TodoFilter>("todoFilter", default: .today)
+    static let todoReminderEnabled = Key<Bool>("todoReminderEnabled", default: true)
+    /// Time of day in minutes after midnight
+    static let todoReminderMinutes = Key<Int>("todoReminderMinutes", default: 16 * 60)
+    static let todoReminderRepeat = Key<Bool>("todoReminderRepeat", default: false)
+    static let todoReminderSystemNotification = Key<Bool>("todoReminderSystemNotification", default: true)
+    static let todoReminderLastFired = Key<Date?>("todoReminderLastFired", default: nil)
 
     // MARK: Dev Tools
     static let devToolsEnabled = Key<Bool>("devToolsEnabled", default: true)

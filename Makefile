@@ -21,7 +21,8 @@ LOGIC_SOURCES := \
 	boringNotch/helpers/ClipboardDetector.swift \
 	boringNotch/helpers/StudyStats.swift \
 	boringNotch/helpers/Flashcards.swift \
-	boringNotch/helpers/MonthGrid.swift
+	boringNotch/helpers/MonthGrid.swift \
+	boringNotch/helpers/TodoSchedule.swift
 TEST_SOURCES := $(wildcard Tests/LogicTests/*.swift)
 TEST_BINARY := build/tests/logic-tests
 

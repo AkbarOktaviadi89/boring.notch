@@ -25,6 +25,7 @@ struct ContentView: View {
     @ObservedObject var volumeManager = VolumeManager.shared
     @ObservedObject var focusTimer = FocusTimerManager.shared
     @ObservedObject var clipboardWatcher = ClipboardWatcher.shared
+    @ObservedObject var todoReminder = TodoReminder.shared
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
@@ -70,7 +71,7 @@ struct ContentView: View {
             && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
         {
             chinWidth = 640
-        } else if showClipboardSuggestion || showFocusLiveActivity {
+        } else if showTodoReminder || showClipboardSuggestion || showFocusLiveActivity {
             chinWidth += (2 * FocusLiveActivity.sideWidth(notchHeight: vm.effectiveClosedNotchHeight) + 20)
         } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
             && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle)
@@ -85,6 +86,11 @@ struct ContentView: View {
         }
 
         return chinWidth
+    }
+
+    private var showTodoReminder: Bool {
+        vm.notchState == .closed && !vm.hideOnClosed && !coordinator.expandingView.show
+            && todoReminder.activeCount != nil
     }
 
     private var showClipboardSuggestion: Bool {
@@ -181,7 +187,10 @@ struct ContentView: View {
                     .onChange(of: vm.notchState) { _, newState in
                         // Opening the notch while a clipboard suggestion shows opens it in Dev Tools
                         if newState == .open {
-                            clipboardWatcher.accept()
+                            // A to-do reminder wins over a clipboard hint: it's the one the user was nudged about
+                            if !TodoReminder.shared.accept() {
+                                clipboardWatcher.accept()
+                            }
                         }
                         if newState == .closed && isHovering {
                             withAnimation {
@@ -308,6 +317,10 @@ struct ContentView: View {
                         .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
                       } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && vm.notchState == .closed {
                           InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
+                              .transition(.opacity)
+                      } else if showTodoReminder, let count = todoReminder.activeCount {
+                          TodoReminderLiveActivity(count: count)
+                              .frame(alignment: .center)
                               .transition(.opacity)
                       } else if showClipboardSuggestion, let suggestion = clipboardWatcher.suggestion {
                           ClipboardSuggestionLiveActivity(kind: suggestion.kind)

@@ -398,6 +398,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         ClipboardWatcher.shared.start()
+        TodoReminder.shared.start()
 
         KeyboardShortcuts.onKeyDown(for: .openDevTools) { [weak self] in
             Task { @MainActor in
