@@ -104,6 +104,32 @@ final class DevToolsManager: ObservableObject {
         clearOutput()
     }
 
+    /// Fills the input with the clipboard and, when the text is recognized, picks the matching tool and runs it
+    func loadFromClipboard() {
+        guard let text = NSPasteboard.general.string(forType: .string) else { return }
+        load(text, kind: ClipboardDetector.detect(text))
+    }
+
+    func load(_ text: String, kind: ClipboardKind?) {
+        input = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        switch kind {
+        case .jwt:
+            tool = .jwt
+            run { try SecurityTransforms.decodeJWT($0) }
+        case .json:
+            tool = .json
+            run(DevTransforms.formatJSON)
+        case .timestamp:
+            tool = .timestamp
+            run { try DevTransforms.convertTimestamp($0) }
+        case .encoded:
+            tool = .smart
+            run(SecurityTransforms.smartDecode)
+        case nil:
+            clearOutput()
+        }
+    }
+
     func useCurrentTime() {
         input = String(Int64(Date().timeIntervalSince1970))
         run { try DevTransforms.convertTimestamp($0) }
@@ -113,6 +139,7 @@ final class DevToolsManager: ObservableObject {
         guard let primary = result?.primary else { return }
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(primary, forType: .string)
+        ClipboardWatcher.shared.ignoreCurrentChange()
         didCopy = true
         copiedResetTask?.cancel()
         copiedResetTask = Task { [weak self] in

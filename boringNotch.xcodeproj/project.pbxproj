@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		FC0000000000000000000026 /* ClipboardWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000025 /* ClipboardWatcher.swift */; };
+		FC0000000000000000000024 /* ClipboardDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000023 /* ClipboardDetector.swift */; };
 		FC0000000000000000000022 /* MonitorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000021 /* MonitorView.swift */; };
 		FC0000000000000000000020 /* SystemMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC000000000000000000001F /* SystemMonitor.swift */; };
 		FC000000000000000000001E /* SystemSampler.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC000000000000000000001D /* SystemSampler.swift */; };
@@ -196,6 +198,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		FC0000000000000000000025 /* ClipboardWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardWatcher.swift; sourceTree = "<group>"; };
+		FC0000000000000000000023 /* ClipboardDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardDetector.swift; sourceTree = "<group>"; };
 		FC0000000000000000000021 /* MonitorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonitorView.swift; sourceTree = "<group>"; };
 		FC000000000000000000001F /* SystemMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMonitor.swift; sourceTree = "<group>"; };
 		FC000000000000000000001D /* SystemSampler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemSampler.swift; sourceTree = "<group>"; };
@@ -523,6 +527,7 @@
 				1153BD972D9881F900979FB0 /* AppleScriptHelper.swift */,
 				14288DD62C6E015000B9F80C /* AudioPlayer.swift */,
 				FC000000000000000000000B /* DevTransforms.swift */,
+				FC0000000000000000000023 /* ClipboardDetector.swift */,
 				FC000000000000000000001D /* SystemSampler.swift */,
 				FC000000000000000000001B /* SystemStats.swift */,
 				FC0000000000000000000014 /* DevServerParser.swift */,
@@ -586,6 +591,7 @@
 				F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */,
 				112FB7342CCF16F70015238C /* NotchSpaceManager.swift */,
 				147163992C5D35FF0068B555 /* MusicManager.swift */,
+				FC0000000000000000000025 /* ClipboardWatcher.swift */,
 				FC000000000000000000001F /* SystemMonitor.swift */,
 				FC0000000000000000000016 /* DevServerMonitor.swift */,
 				FC000000000000000000000D /* DevToolsManager.swift */,
@@ -1030,6 +1036,8 @@
 				14C08BC12C8E03AD000F8AA0 /* NSImage+Extensions.swift in Sources */,
 				149E0B9A2C737D40006418B1 /* WebcamView.swift in Sources */,
 				1471639A2C5D35FF0068B555 /* MusicManager.swift in Sources */,
+				FC0000000000000000000026 /* ClipboardWatcher.swift in Sources */,
+				FC0000000000000000000024 /* ClipboardDetector.swift in Sources */,
 				FC0000000000000000000022 /* MonitorView.swift in Sources */,
 				FC0000000000000000000020 /* SystemMonitor.swift in Sources */,
 				FC000000000000000000001E /* SystemSampler.swift in Sources */,

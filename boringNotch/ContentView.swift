@@ -24,6 +24,7 @@ struct ContentView: View {
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
     @ObservedObject var focusTimer = FocusTimerManager.shared
+    @ObservedObject var clipboardWatcher = ClipboardWatcher.shared
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
@@ -69,7 +70,7 @@ struct ContentView: View {
             && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
         {
             chinWidth = 640
-        } else if showFocusLiveActivity {
+        } else if showClipboardSuggestion || showFocusLiveActivity {
             chinWidth += (2 * FocusLiveActivity.sideWidth(notchHeight: vm.effectiveClosedNotchHeight) + 20)
         } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
             && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle)
@@ -84,6 +85,11 @@ struct ContentView: View {
         }
 
         return chinWidth
+    }
+
+    private var showClipboardSuggestion: Bool {
+        vm.notchState == .closed && !vm.hideOnClosed && !coordinator.expandingView.show
+            && clipboardWatcher.suggestion != nil
     }
 
     private var showFocusLiveActivity: Bool {
@@ -173,6 +179,10 @@ struct ContentView: View {
                         }
                     }
                     .onChange(of: vm.notchState) { _, newState in
+                        // Opening the notch while a clipboard suggestion shows opens it in Dev Tools
+                        if newState == .open {
+                            clipboardWatcher.accept()
+                        }
                         if newState == .closed && isHovering {
                             withAnimation {
                                 isHovering = false
@@ -298,6 +308,10 @@ struct ContentView: View {
                         .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
                       } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && vm.notchState == .closed {
                           InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
+                              .transition(.opacity)
+                      } else if showClipboardSuggestion, let suggestion = clipboardWatcher.suggestion {
+                          ClipboardSuggestionLiveActivity(kind: suggestion.kind)
+                              .frame(alignment: .center)
                               .transition(.opacity)
                       } else if showFocusLiveActivity {
                           FocusLiveActivity()

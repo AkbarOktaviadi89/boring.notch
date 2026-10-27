@@ -254,6 +254,46 @@ struct DevToolsView: View {
     }
 }
 
+/// Shown on the closed notch for a few seconds after copying something Dev Tools can decode.
+/// Opening the notch while it shows loads the text into Dev Tools.
+struct ClipboardSuggestionLiveActivity: View {
+    @EnvironmentObject var vm: BoringViewModel
+    let kind: ClipboardKind
+
+    private var label: LocalizedStringKey {
+        switch kind {
+        case .jwt: return "JWT"
+        case .json: return "JSON"
+        case .timestamp: return "Time"
+        case .encoded: return "Decode"
+        }
+    }
+
+    var body: some View {
+        let sideWidth = FocusLiveActivity.sideWidth(notchHeight: vm.effectiveClosedNotchHeight)
+
+        HStack {
+            Image(systemName: "wand.and.stars")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(Color.effectiveAccent)
+                .frame(width: sideWidth)
+
+            Rectangle()
+                .fill(.black)
+                .frame(width: vm.closedNotchSize.width + -cornerRadiusInsets.closed.top)
+
+            Text(label)
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+                .frame(width: sideWidth)
+        }
+        .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
+        .help("Copied text Dev Tools can decode. Open the notch to see it.")
+    }
+}
+
 private extension Color {
     /// Parses "#RRGGBB"
     init?(hex: String) {

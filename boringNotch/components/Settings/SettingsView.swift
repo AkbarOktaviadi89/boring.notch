@@ -1043,6 +1043,19 @@ struct DevToolsSettings: View {
                     .foregroundStyle(.secondary)
                     .font(.caption)
             }
+
+            Section {
+                Defaults.Toggle(key: .clipboardSuggestions) {
+                    Text("Suggest decoding copied text")
+                }
+                .disabled(!devToolsEnabled)
+            } header: {
+                Text("Clipboard")
+            } footer: {
+                Text("When you copy a JWT, JSON, a Unix timestamp or encoded text, the closed notch shows a hint for a few seconds; opening the notch then shows it decoded in Dev Tools. The clipboard is only read when it changes and is never stored. Text that password managers mark as concealed is ignored.")
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
         }
         .navigationTitle("Dev Tools")
     }
@@ -1918,6 +1931,14 @@ struct Shortcuts: View {
             }
             Section {
                 KeyboardShortcuts.Recorder("Toggle Notch Open:", name: .toggleNotchOpen)
+            }
+            Section {
+                KeyboardShortcuts.Recorder("Open Dev Tools:", name: .openDevTools)
+            } footer: {
+                Text("Opens Dev Tools with the clipboard loaded and runs the matching tool. Press it again to close the notch.")
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
             }
         }
         .accentColor(.effectiveAccent)

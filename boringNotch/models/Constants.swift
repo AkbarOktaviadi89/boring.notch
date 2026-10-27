@@ -185,6 +185,7 @@ extension Defaults.Keys {
 
     // MARK: Dev Tools
     static let devToolsEnabled = Key<Bool>("devToolsEnabled", default: true)
+    static let clipboardSuggestions = Key<Bool>("clipboardSuggestions", default: true)
 
     // MARK: Dev Servers
     static let devServersEnabled = Key<Bool>("devServersEnabled", default: true)

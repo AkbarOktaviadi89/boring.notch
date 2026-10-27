@@ -231,6 +231,38 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    /// Shortcut behaviour for a single tab: opens the notch under the mouse on that tab,
+    /// switches to it if the notch is open on another tab, and closes the notch if it already shows it
+    @MainActor
+    private func toggleNotch(on view: NotchViews, enabled: Bool, prepare: (() -> Void)? = nil) {
+        guard enabled else { return }
+
+        var viewModel = vm
+        if Defaults[.showOnAllDisplays] {
+            let mouseLocation = NSEvent.mouseLocation
+            if let screen = NSScreen.screens.first(where: { $0.frame.contains(mouseLocation) }),
+               let uuid = screen.displayUUID, let screenViewModel = viewModels[uuid] {
+                viewModel = screenViewModel
+            }
+        }
+
+        // Unlike toggleNotchOpen, don't close after a few seconds: the user opened the tab to use it
+        closeNotchTask?.cancel()
+        closeNotchTask = nil
+
+        if viewModel.notchState == .open && coordinator.currentView == view {
+            viewModel.close()
+            return
+        }
+        prepare?()
+        withAnimation(.smooth) {
+            coordinator.currentView = view
+        }
+        if viewModel.notchState == .closed {
+            viewModel.open()
+        }
+    }
+
     private func createBoringNotchWindow(for screen: NSScreen, with viewModel: BoringViewModel) -> NSWindow {
         let rect = NSRect(x: 0, y: 0, width: windowSize.width, height: windowSize.height)
         let styleMask: NSWindow.StyleMask = [.borderless, .nonactivatingPanel, .utilityWindow, .hudWindow]
@@ -362,6 +394,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     type: .music,
                     duration: 3.0
                 )
+            }
+        }
+
+        ClipboardWatcher.shared.start()
+
+        KeyboardShortcuts.onKeyDown(for: .openDevTools) { [weak self] in
+            Task { @MainActor in
+                self?.toggleNotch(on: .devTools, enabled: Defaults[.devToolsEnabled]) {
+                    DevToolsManager.shared.loadFromClipboard()
+                }
             }
         }
 
