@@ -211,13 +211,17 @@ class BoringViewModel: NSObject, ObservableObject {
         self.coordinator.sneakPeek.show = false
         self.edgeAutoOpenActive = false
 
-        // Set the current view to shelf if it contains files and the user enables openShelfByDefault
-        // Otherwise, if the user has not enabled openLastShelfByDefault, set the view to home
-    if !ShelfStateViewModel.shared.isEmpty && Defaults[.openShelfByDefault] {
+        // With "Remember last tab" on, the notch reopens on whatever tab the user left it on.
+        // Otherwise open the shelf if it contains files and the user enables openShelfByDefault,
+        // the focus timer while a session runs, or home
+        if coordinator.openLastTabByDefault {
+            return
+        }
+        if !ShelfStateViewModel.shared.isEmpty && Defaults[.openShelfByDefault] {
             coordinator.currentView = .shelf
         } else if Defaults[.focusTimerEnabled] && FocusTimerManager.shared.state != .idle {
             coordinator.currentView = .focus
-        } else if !coordinator.openLastTabByDefault {
+        } else {
             coordinator.currentView = .home
         }
     }
