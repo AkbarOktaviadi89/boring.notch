@@ -139,6 +139,78 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         reply(false)
     }
 
+    // MARK: - Dev servers
+
+    private static let lsofPath = "/usr/sbin/lsof"
+    private static let listeningArguments = ["+c", "0", "-nP", "-iTCP", "-sTCP:LISTEN", "-F", "pcn"]
+
+    @objc func listeningSocketsReport(with reply: @escaping (String?) -> Void) {
+        reply(Self.run(Self.lsofPath, Self.listeningArguments))
+    }
+
+    /// One "pid<TAB>executable path<TAB>working directory" line per pid in the comma-separated list
+    @objc func processDetailsReport(forPIDs pidList: String, with reply: @escaping (String?) -> Void) {
+        let pids = pidList.split(separator: ",").compactMap { Int32($0) }
+        let lines = pids.map { pid in
+            "\(pid)\t\(Self.executablePath(of: pid) ?? "")\t\(Self.workingDirectory(of: pid) ?? "")"
+        }
+        reply(lines.joined(separator: "\n"))
+    }
+
+    /// Only signals processes of the current user that are listening on a TCP port right now,
+    /// so the app can't be used to kill arbitrary processes
+    @objc func terminateListeningProcess(_ pid: Int32, force: Bool, with reply: @escaping (Bool) -> Void) {
+        guard pid > 1, pid != getpid(), Self.ownerUID(of: pid) == getuid(),
+              let report = Self.run(Self.lsofPath, Self.listeningArguments + ["-p", String(pid)]),
+              report.split(whereSeparator: \.isNewline).contains(where: { $0 == "p\(pid)" })
+        else {
+            reply(false)
+            return
+        }
+        reply(kill(pid, force ? SIGKILL : SIGTERM) == 0)
+    }
+
+    /// Runs a command and returns its standard output. lsof exits with 1 when nothing matches, which is not an error here.
+    private static func run(_ path: String, _ arguments: [String]) -> String? {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: path)
+        process.arguments = arguments
+        let output = Pipe()
+        process.standardOutput = output
+        process.standardError = FileHandle.nullDevice
+        do {
+            try process.run()
+        } catch {
+            return nil
+        }
+        // Read before waiting so a full pipe buffer can't block the child
+        let data = output.fileHandleForReading.readDataToEndOfFile()
+        process.waitUntilExit()
+        return String(decoding: data, as: UTF8.self)
+    }
+
+    private static func executablePath(of pid: Int32) -> String? {
+        var buffer = [CChar](repeating: 0, count: 4 * Int(MAXPATHLEN))
+        guard proc_pidpath(pid, &buffer, UInt32(buffer.count)) > 0 else { return nil }
+        return String(cString: buffer)
+    }
+
+    private static func workingDirectory(of pid: Int32) -> String? {
+        var info = proc_vnodepathinfo()
+        let size = Int32(MemoryLayout<proc_vnodepathinfo>.size)
+        guard proc_pidinfo(pid, PROC_PIDVNODEPATHINFO, 0, &info, size) == size else { return nil }
+        return withUnsafeBytes(of: &info.pvi_cdir.vip_path) { raw in
+            String(cString: raw.bindMemory(to: CChar.self).baseAddress!)
+        }
+    }
+
+    private static func ownerUID(of pid: Int32) -> uid_t? {
+        var info = proc_bsdinfo()
+        let size = Int32(MemoryLayout<proc_bsdinfo>.size)
+        guard proc_pidinfo(pid, PROC_PIDTBSDINFO, 0, &info, size) == size else { return nil }
+        return info.pbi_uid
+    }
+
     // MARK: - Private helpers for DisplayServices / IOKit access
     private func displayServicesGetBrightness(displayID: CGDirectDisplayID, out: inout Float) -> Bool {
         guard let sym = dlsym(DisplayServicesHandle.handle, "DisplayServicesGetBrightness") else { return false }

@@ -20,5 +20,9 @@ import Foundation
     func isScreenBrightnessAvailable(with reply: @escaping (Bool) -> Void)
     func currentScreenBrightness(with reply: @escaping (NSNumber?) -> Void)
     func setScreenBrightness(_ value: Float, with reply: @escaping (Bool) -> Void)
+    // Dev servers: listening TCP sockets of the user's processes (the sandboxed app can't see them)
+    func listeningSocketsReport(with reply: @escaping (String?) -> Void)
+    func processDetailsReport(forPIDs pidList: String, with reply: @escaping (String?) -> Void)
+    func terminateListeningProcess(_ pid: Int32, force: Bool, with reply: @escaping (Bool) -> Void)
 }
 

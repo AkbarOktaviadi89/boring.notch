@@ -30,6 +30,7 @@ public enum NotchViews {
     case focus
     case todo
     case devTools
+    case devServers
 }
 
 enum SettingsEnum {

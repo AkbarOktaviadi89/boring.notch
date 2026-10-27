@@ -241,6 +241,56 @@ final class XPCHelperClient: NSObject {
             return false
         }
     }
+
+    // MARK: - Dev servers
+
+    nonisolated func listeningSocketsReport() async -> String? {
+        do {
+            let service = await MainActor.run {
+                ensureRemoteService()
+            }
+            let result: String? = try await service.withContinuation { service, continuation in
+                service.listeningSocketsReport { report in
+                    continuation.resume(returning: report)
+                }
+            }
+            return result
+        } catch {
+            return nil
+        }
+    }
+
+    nonisolated func processDetailsReport(forPIDs pids: [Int32]) async -> String? {
+        do {
+            let service = await MainActor.run {
+                ensureRemoteService()
+            }
+            let pidList = pids.map(String.init).joined(separator: ",")
+            let result: String? = try await service.withContinuation { service, continuation in
+                service.processDetailsReport(forPIDs: pidList) { report in
+                    continuation.resume(returning: report)
+                }
+            }
+            return result
+        } catch {
+            return nil
+        }
+    }
+
+    nonisolated func terminateListeningProcess(_ pid: Int32, force: Bool) async -> Bool {
+        do {
+            let service = await MainActor.run {
+                ensureRemoteService()
+            }
+            return try await service.withContinuation { service, continuation in
+                service.terminateListeningProcess(pid, force: force) { success in
+                    continuation.resume(returning: success)
+                }
+            }
+        } catch {
+            return false
+        }
+    }
 }
 
 extension Notification.Name {

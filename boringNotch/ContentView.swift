@@ -370,6 +370,8 @@ struct ContentView: View {
                         TodoView()
                     case .devTools:
                         DevToolsView()
+                    case .devServers:
+                        DevServersView()
                     }
                 }
                 .transition(

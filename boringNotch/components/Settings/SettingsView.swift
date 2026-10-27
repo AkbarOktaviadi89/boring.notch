@@ -60,6 +60,9 @@ struct SettingsView: View {
                 NavigationLink(value: "Dev Tools") {
                     Label("Dev Tools", systemImage: "hammer")
                 }
+                NavigationLink(value: "Servers") {
+                    Label("Servers", systemImage: "server.rack")
+                }
                 NavigationLink(value: "Shortcuts") {
                     Label("Shortcuts", systemImage: "keyboard")
                 }
@@ -100,6 +103,8 @@ struct SettingsView: View {
                     TodoSettings()
                 case "Dev Tools":
                     DevToolsSettings()
+                case "Servers":
+                    DevServersSettings()
                 case "Shortcuts":
                     Shortcuts()
                 case "Extensions":
@@ -1040,6 +1045,37 @@ struct DevToolsSettings: View {
             }
         }
         .navigationTitle("Dev Tools")
+    }
+}
+
+struct DevServersSettings: View {
+    @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @Default(.devServersEnabled) var devServersEnabled
+
+    var body: some View {
+        Form {
+            Section {
+                Defaults.Toggle(key: .devServersEnabled) {
+                    Text("Enable servers monitor")
+                }
+                .onChange(of: devServersEnabled) { _, enabled in
+                    if !enabled && coordinator.currentView == .devServers {
+                        coordinator.currentView = .home
+                    }
+                }
+                Defaults.Toggle(key: .devServersShowSystem) {
+                    Text("Show macOS system services")
+                }
+                .disabled(!devServersEnabled)
+            } header: {
+                Text("General")
+            } footer: {
+                Text("Lists the TCP ports your processes are listening on, refreshed every 3 seconds while the tab is open. Stop sends SIGTERM, and Force quit sends SIGKILL if the process is still running. An orange network icon means other devices on your network can reach the server.")
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+        }
+        .navigationTitle("Servers")
     }
 }
 

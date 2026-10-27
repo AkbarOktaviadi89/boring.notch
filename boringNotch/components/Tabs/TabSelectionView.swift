@@ -20,7 +20,8 @@ let tabs = [
     TabModel(label: "Shelf", icon: "tray.fill", view: .shelf),
     TabModel(label: "Focus", icon: "timer", view: .focus),
     TabModel(label: "To-do", icon: "checklist", view: .todo),
-    TabModel(label: "Dev Tools", icon: "hammer.fill", view: .devTools)
+    TabModel(label: "Dev Tools", icon: "hammer.fill", view: .devTools),
+    TabModel(label: "Servers", icon: "server.rack", view: .devServers)
 ]
 
 struct TabSelectionView: View {
@@ -29,6 +30,7 @@ struct TabSelectionView: View {
     @Default(.focusTimerEnabled) var focusTimerEnabled
     @Default(.todoEnabled) var todoEnabled
     @Default(.devToolsEnabled) var devToolsEnabled
+    @Default(.devServersEnabled) var devServersEnabled
     @Namespace var animation
 
     private var visibleTabs: [TabModel] {
@@ -39,6 +41,7 @@ struct TabSelectionView: View {
             case .focus: return focusTimerEnabled
             case .todo: return todoEnabled
             case .devTools: return devToolsEnabled
+            case .devServers: return devServersEnabled
             }
         }
     }
