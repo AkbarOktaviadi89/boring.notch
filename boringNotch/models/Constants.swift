@@ -189,6 +189,7 @@ extension Defaults.Keys {
     // MARK: Dev Servers
     static let devServersEnabled = Key<Bool>("devServersEnabled", default: true)
     static let devServersShowSystem = Key<Bool>("devServersShowSystem", default: false)
+    static let monitorSection = Key<MonitorSection>("monitorSection", default: .system)
 
     // MARK: Calendar
     static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)

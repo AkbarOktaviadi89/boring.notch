@@ -21,7 +21,7 @@ let tabs = [
     TabModel(label: "Focus", icon: "timer", view: .focus),
     TabModel(label: "To-do", icon: "checklist", view: .todo),
     TabModel(label: "Dev Tools", icon: "hammer.fill", view: .devTools),
-    TabModel(label: "Servers", icon: "server.rack", view: .devServers)
+    TabModel(label: "Monitor", icon: "gauge.with.dots.needle.33percent", view: .devServers)
 ]
 
 struct TabSelectionView: View {

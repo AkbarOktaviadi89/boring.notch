@@ -170,6 +170,12 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         reply(kill(pid, force ? SIGKILL : SIGTERM) == 0)
     }
 
+    // MARK: - System monitor
+
+    @objc func topProcessesReport(with reply: @escaping (String?) -> Void) {
+        reply(Self.run("/bin/ps", ["-Aceo", "pid=,pcpu=,rss=,comm=", "-r"]))
+    }
+
     /// Runs a command and returns its standard output. lsof exits with 1 when nothing matches, which is not an error here.
     private static func run(_ path: String, _ arguments: [String]) -> String? {
         let process = Process()

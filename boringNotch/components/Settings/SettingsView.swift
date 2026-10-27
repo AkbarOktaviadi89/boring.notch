@@ -60,8 +60,8 @@ struct SettingsView: View {
                 NavigationLink(value: "Dev Tools") {
                     Label("Dev Tools", systemImage: "hammer")
                 }
-                NavigationLink(value: "Servers") {
-                    Label("Servers", systemImage: "server.rack")
+                NavigationLink(value: "Monitor") {
+                    Label("Monitor", systemImage: "gauge.with.dots.needle.33percent")
                 }
                 NavigationLink(value: "Shortcuts") {
                     Label("Shortcuts", systemImage: "keyboard")
@@ -103,8 +103,8 @@ struct SettingsView: View {
                     TodoSettings()
                 case "Dev Tools":
                     DevToolsSettings()
-                case "Servers":
-                    DevServersSettings()
+                case "Monitor":
+                    MonitorSettings()
                 case "Shortcuts":
                     Shortcuts()
                 case "Extensions":
@@ -1048,34 +1048,43 @@ struct DevToolsSettings: View {
     }
 }
 
-struct DevServersSettings: View {
+struct MonitorSettings: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
-    @Default(.devServersEnabled) var devServersEnabled
+    @Default(.devServersEnabled) var monitorEnabled
 
     var body: some View {
         Form {
             Section {
                 Defaults.Toggle(key: .devServersEnabled) {
-                    Text("Enable servers monitor")
+                    Text("Enable monitor tab")
                 }
-                .onChange(of: devServersEnabled) { _, enabled in
+                .onChange(of: monitorEnabled) { _, enabled in
                     if !enabled && coordinator.currentView == .devServers {
                         coordinator.currentView = .home
                     }
                 }
+            } header: {
+                Text("General")
+            } footer: {
+                Text("System shows CPU, memory, network, disk, thermal state and the busiest processes, sampled every second while the tab is open.")
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+
+            Section {
                 Defaults.Toggle(key: .devServersShowSystem) {
                     Text("Show macOS system services")
                 }
-                .disabled(!devServersEnabled)
+                .disabled(!monitorEnabled)
             } header: {
-                Text("General")
+                Text("Servers")
             } footer: {
                 Text("Lists the TCP ports your processes are listening on, refreshed every 3 seconds while the tab is open. Stop sends SIGTERM, and Force quit sends SIGKILL if the process is still running. An orange network icon means other devices on your network can reach the server.")
                     .foregroundStyle(.secondary)
                     .font(.caption)
             }
         }
-        .navigationTitle("Servers")
+        .navigationTitle("Monitor")
     }
 }
 

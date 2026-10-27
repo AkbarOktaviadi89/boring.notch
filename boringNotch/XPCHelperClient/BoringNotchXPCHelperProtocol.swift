@@ -24,5 +24,7 @@ import Foundation
     func listeningSocketsReport(with reply: @escaping (String?) -> Void)
     func processDetailsReport(forPIDs pidList: String, with reply: @escaping (String?) -> Void)
     func terminateListeningProcess(_ pid: Int32, force: Bool, with reply: @escaping (Bool) -> Void)
+    // System monitor: processes sorted by CPU use (the sandboxed app can't run ps on other processes)
+    func topProcessesReport(with reply: @escaping (String?) -> Void)
 }
 

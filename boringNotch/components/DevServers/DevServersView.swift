@@ -33,8 +33,7 @@ struct DevServersView: View {
 
     private var header: some View {
         HStack(spacing: 8) {
-            Label("Servers", systemImage: "server.rack")
-                .font(.headline)
+            MonitorSectionPicker()
             Text("\(visible.count) listening")
                 .font(.caption)
                 .foregroundStyle(.gray)

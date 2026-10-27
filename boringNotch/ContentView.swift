@@ -371,7 +371,7 @@ struct ContentView: View {
                     case .devTools:
                         DevToolsView()
                     case .devServers:
-                        DevServersView()
+                        MonitorView()
                     }
                 }
                 .transition(

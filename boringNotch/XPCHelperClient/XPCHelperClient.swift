@@ -277,6 +277,24 @@ final class XPCHelperClient: NSObject {
         }
     }
 
+    // MARK: - System monitor
+
+    nonisolated func topProcessesReport() async -> String? {
+        do {
+            let service = await MainActor.run {
+                ensureRemoteService()
+            }
+            let result: String? = try await service.withContinuation { service, continuation in
+                service.topProcessesReport { report in
+                    continuation.resume(returning: report)
+                }
+            }
+            return result
+        } catch {
+            return nil
+        }
+    }
+
     nonisolated func terminateListeningProcess(_ pid: Int32, force: Bool) async -> Bool {
         do {
             let service = await MainActor.run {
