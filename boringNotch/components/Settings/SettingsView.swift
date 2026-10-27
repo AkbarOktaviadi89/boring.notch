@@ -57,6 +57,9 @@ struct SettingsView: View {
                 NavigationLink(value: "To-do") {
                     Label("To-do", systemImage: "checklist")
                 }
+                NavigationLink(value: "Notes") {
+                    Label("Notes", systemImage: "note.text")
+                }
                 NavigationLink(value: "Dev Tools") {
                     Label("Dev Tools", systemImage: "hammer")
                 }
@@ -101,6 +104,8 @@ struct SettingsView: View {
                     FocusSettings()
                 case "To-do":
                     TodoSettings()
+                case "Notes":
+                    NotesSettings()
                 case "Dev Tools":
                     DevToolsSettings()
                 case "Monitor":
@@ -1109,6 +1114,53 @@ struct TodoSettings: View {
                 reminderMinutes = (parts.hour ?? 0) * 60 + (parts.minute ?? 0)
             }
         )
+    }
+}
+
+struct NotesSettings: View {
+    @ObservedObject var notes = NotesManager.shared
+    @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @Default(.notesEnabled) var notesEnabled
+    @State private var confirmingDeleteAll = false
+
+    var body: some View {
+        Form {
+            Section {
+                Defaults.Toggle(key: .notesEnabled) {
+                    Text("Enable notes")
+                }
+                .onChange(of: notesEnabled) { _, enabled in
+                    if !enabled && coordinator.currentView == .notes {
+                        coordinator.currentView = .home
+                    }
+                }
+            } header: {
+                Text("General")
+            } footer: {
+                Text("Notes save as you type. The first line of a note is its title. Right-click a note in the list to pin, copy, duplicate or delete it.")
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+
+            Section {
+                HStack {
+                    Text("\(notes.notes.count) notes")
+                    Spacer()
+                    Button("Delete all notes…", role: .destructive) {
+                        confirmingDeleteAll = true
+                    }
+                    .disabled(notes.notes.isEmpty)
+                }
+            } header: {
+                Text("Notes")
+            }
+        }
+        .confirmationDialog("Delete all \(notes.notes.count) notes?", isPresented: $confirmingDeleteAll) {
+            Button("Delete all", role: .destructive) { notes.deleteAll() }
+        } message: {
+            Text("This can't be undone.")
+        }
+        .navigationTitle("Notes")
     }
 }
 

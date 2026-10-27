@@ -198,6 +198,11 @@ extension Defaults.Keys {
     static let todoReminderSystemNotification = Key<Bool>("todoReminderSystemNotification", default: true)
     static let todoReminderLastFired = Key<Date?>("todoReminderLastFired", default: nil)
 
+    // MARK: Notes
+    static let notesEnabled = Key<Bool>("notesEnabled", default: true)
+    static let notes = Key<[Note]>("notes", default: [])
+    static let notesSelectedID = Key<UUID?>("notesSelectedID", default: nil)
+
     // MARK: Dev Tools
     static let devToolsEnabled = Key<Bool>("devToolsEnabled", default: true)
     static let clipboardSuggestions = Key<Bool>("clipboardSuggestions", default: true)

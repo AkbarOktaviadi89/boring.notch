@@ -13,11 +13,21 @@ struct BoringHeader: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @StateObject var tvm = ShelfStateViewModel.shared
+    @Namespace var tabAnimation
+
+    private var showsTabs: Bool {
+        ((!tvm.isEmpty || coordinator.alwaysShowTabs) && Defaults[.boringShelf]) || Defaults[.focusTimerEnabled] || Defaults[.todoEnabled] || Defaults[.notesEnabled] || Defaults[.devToolsEnabled] || Defaults[.devServersEnabled]
+    }
+
+    private var showsOpenNotchHUD: Bool {
+        isHUDType(coordinator.sneakPeek.type) && coordinator.sneakPeek.show && Defaults[.showOpenNotchHUD]
+    }
+
     var body: some View {
         HStack(spacing: 0) {
             HStack {
-                if ((!tvm.isEmpty || coordinator.alwaysShowTabs) && Defaults[.boringShelf]) || Defaults[.focusTimerEnabled] || Defaults[.todoEnabled] || Defaults[.devToolsEnabled] || Defaults[.devServersEnabled] {
-                    TabSelectionView()
+                if showsTabs {
+                    TabSelectionView(side: .leading, animation: tabAnimation)
                 } else if vm.notchState == .open {
                     EmptyView()
                 }
@@ -37,8 +47,12 @@ struct BoringHeader: View {
             }
 
             HStack(spacing: 4) {
+                // The open-notch HUD needs this whole side for a moment, so the tabs here step aside
+                if vm.notchState == .open && showsTabs && !showsOpenNotchHUD {
+                    TabSelectionView(side: .trailing, animation: tabAnimation)
+                }
                 if vm.notchState == .open {
-                    if isHUDType(coordinator.sneakPeek.type) && coordinator.sneakPeek.show && Defaults[.showOpenNotchHUD] {
+                    if showsOpenNotchHUD {
                         OpenNotchHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon)
                             .transition(.scale(scale: 0.8).combined(with: .opacity))
                     } else {

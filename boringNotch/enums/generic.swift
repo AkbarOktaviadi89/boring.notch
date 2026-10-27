@@ -29,6 +29,7 @@ public enum NotchViews {
     case shelf
     case focus
     case todo
+    case notes
     case devTools
     case devServers
 }

@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		FC000000000000000000003E /* NotesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC000000000000000000003D /* NotesView.swift */; };
+		FC000000000000000000003C /* NotesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC000000000000000000003B /* NotesManager.swift */; };
+		FC000000000000000000003A /* Notes.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000039 /* Notes.swift */; };
 		FC0000000000000000000038 /* TodoReminder.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000037 /* TodoReminder.swift */; };
 		FC0000000000000000000036 /* TodoSchedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000035 /* TodoSchedule.swift */; };
 		FC0000000000000000000034 /* MonthCalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000033 /* MonthCalendarView.swift */; };
@@ -207,6 +210,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		FC000000000000000000003D /* NotesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotesView.swift; sourceTree = "<group>"; };
+		FC000000000000000000003B /* NotesManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotesManager.swift; sourceTree = "<group>"; };
+		FC0000000000000000000039 /* Notes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notes.swift; sourceTree = "<group>"; };
 		FC0000000000000000000037 /* TodoReminder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoReminder.swift; sourceTree = "<group>"; };
 		FC0000000000000000000035 /* TodoSchedule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoSchedule.swift; sourceTree = "<group>"; };
 		FC0000000000000000000033 /* MonthCalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonthCalendarView.swift; sourceTree = "<group>"; };
@@ -409,6 +415,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		FC000000000000000000003F /* Notes */ = {
+			isa = PBXGroup;
+			children = (
+				FC000000000000000000003D /* NotesView.swift */,
+			);
+			path = Notes;
+			sourceTree = "<group>";
+		};
 		FC000000000000000000001A /* DevServers */ = {
 			isa = PBXGroup;
 			children = (
@@ -548,6 +562,7 @@
 				14288DD62C6E015000B9F80C /* AudioPlayer.swift */,
 				FC000000000000000000000B /* DevTransforms.swift */,
 				FC0000000000000000000035 /* TodoSchedule.swift */,
+				FC0000000000000000000039 /* Notes.swift */,
 				FC0000000000000000000031 /* MonthGrid.swift */,
 				FC0000000000000000000029 /* Flashcards.swift */,
 				FC0000000000000000000027 /* StudyStats.swift */,
@@ -592,6 +607,7 @@
 				B18654302C6F4590000B926A /* Settings */,
 				B186542F2C6F455E000B926A /* Notch */,
 				9A0887332C7AFF7E00C160EA /* Tabs */,
+				FC000000000000000000003F /* Notes */,
 				FC000000000000000000001A /* DevServers */,
 				FC0000000000000000000011 /* DevTools */,
 				FC000000000000000000000A /* Todo */,
@@ -615,6 +631,7 @@
 				F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */,
 				112FB7342CCF16F70015238C /* NotchSpaceManager.swift */,
 				147163992C5D35FF0068B555 /* MusicManager.swift */,
+				FC000000000000000000003B /* NotesManager.swift */,
 				FC0000000000000000000037 /* TodoReminder.swift */,
 				FC000000000000000000002B /* FlashcardManager.swift */,
 				FC0000000000000000000025 /* ClipboardWatcher.swift */,
@@ -1063,6 +1080,9 @@
 				14C08BC12C8E03AD000F8AA0 /* NSImage+Extensions.swift in Sources */,
 				149E0B9A2C737D40006418B1 /* WebcamView.swift in Sources */,
 				1471639A2C5D35FF0068B555 /* MusicManager.swift in Sources */,
+				FC000000000000000000003E /* NotesView.swift in Sources */,
+				FC000000000000000000003C /* NotesManager.swift in Sources */,
+				FC000000000000000000003A /* Notes.swift in Sources */,
 				FC0000000000000000000038 /* TodoReminder.swift in Sources */,
 				FC0000000000000000000036 /* TodoSchedule.swift in Sources */,
 				FC0000000000000000000034 /* MonthCalendarView.swift in Sources */,

@@ -21,6 +21,7 @@ runSecurityToolsTests()
 runMonthGridTests()
 runTodoScheduleTests()
 runTodoReminderTests()
+runNotesTests()
 
 print(failures == 0 ? "All \(passes) tests passed" : "\(failures) of \(passes + failures) tests FAILED")
 exit(failures == 0 ? 0 : 1)

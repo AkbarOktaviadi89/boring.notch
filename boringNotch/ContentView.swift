@@ -395,6 +395,8 @@ struct ContentView: View {
                         FocusTabView()
                     case .todo:
                         TodoView()
+                    case .notes:
+                        NotesView()
                     case .devTools:
                         DevToolsView()
                     case .devServers:
