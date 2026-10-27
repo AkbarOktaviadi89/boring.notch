@@ -368,6 +368,8 @@ struct ContentView: View {
                         FocusTimerView()
                     case .todo:
                         TodoView()
+                    case .devTools:
+                        DevToolsView()
                     }
                 }
                 .transition(

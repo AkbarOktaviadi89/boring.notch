@@ -57,6 +57,9 @@ struct SettingsView: View {
                 NavigationLink(value: "To-do") {
                     Label("To-do", systemImage: "checklist")
                 }
+                NavigationLink(value: "Dev Tools") {
+                    Label("Dev Tools", systemImage: "hammer")
+                }
                 NavigationLink(value: "Shortcuts") {
                     Label("Shortcuts", systemImage: "keyboard")
                 }
@@ -95,6 +98,8 @@ struct SettingsView: View {
                     FocusSettings()
                 case "To-do":
                     TodoSettings()
+                case "Dev Tools":
+                    DevToolsSettings()
                 case "Shortcuts":
                     Shortcuts()
                 case "Extensions":
@@ -1008,6 +1013,33 @@ struct TodoSettings: View {
             }
         }
         .navigationTitle("To-do")
+    }
+}
+
+struct DevToolsSettings: View {
+    @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @Default(.devToolsEnabled) var devToolsEnabled
+
+    var body: some View {
+        Form {
+            Section {
+                Defaults.Toggle(key: .devToolsEnabled) {
+                    Text("Enable dev tools")
+                }
+                .onChange(of: devToolsEnabled) { _, enabled in
+                    if !enabled && coordinator.currentView == .devTools {
+                        coordinator.currentView = .home
+                    }
+                }
+            } header: {
+                Text("General")
+            } footer: {
+                Text("Dev: JSON formatter, Base64 and URL encoding, UUID generator, timestamp converter and a screen color picker. Security: JWT decoder, hashes, hex, HTML entities, unicode escapes and a smart decoder for layered encodings.")
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+        }
+        .navigationTitle("Dev Tools")
     }
 }
 

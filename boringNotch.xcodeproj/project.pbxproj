@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		FC0000000000000000000013 /* SecurityTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000012 /* SecurityTransforms.swift */; };
+		FC0000000000000000000010 /* DevToolsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC000000000000000000000F /* DevToolsView.swift */; };
+		FC000000000000000000000E /* DevToolsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC000000000000000000000D /* DevToolsManager.swift */; };
+		FC000000000000000000000C /* DevTransforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC000000000000000000000B /* DevTransforms.swift */; };
 		FC0000000000000000000007 /* TodoManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000006 /* TodoManager.swift */; };
 		FC0000000000000000000009 /* TodoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000008 /* TodoView.swift */; };
 		FC0000000000000000000002 /* FocusTimerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000001 /* FocusTimerManager.swift */; };
@@ -185,6 +189,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		FC0000000000000000000012 /* SecurityTransforms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecurityTransforms.swift; sourceTree = "<group>"; };
+		FC000000000000000000000F /* DevToolsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevToolsView.swift; sourceTree = "<group>"; };
+		FC000000000000000000000D /* DevToolsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevToolsManager.swift; sourceTree = "<group>"; };
+		FC000000000000000000000B /* DevTransforms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevTransforms.swift; sourceTree = "<group>"; };
 		FC0000000000000000000006 /* TodoManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoManager.swift; sourceTree = "<group>"; };
 		FC0000000000000000000008 /* TodoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoView.swift; sourceTree = "<group>"; };
 		FC0000000000000000000001 /* FocusTimerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusTimerManager.swift; sourceTree = "<group>"; };
@@ -365,6 +373,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		FC0000000000000000000011 /* DevTools */ = {
+			isa = PBXGroup;
+			children = (
+				FC000000000000000000000F /* DevToolsView.swift */,
+			);
+			path = DevTools;
+			sourceTree = "<group>";
+		};
 		FC000000000000000000000A /* Todo */ = {
 			isa = PBXGroup;
 			children = (
@@ -483,6 +499,8 @@
 				11A45C782E34E63100CEB175 /* MediaChecker.swift */,
 				1153BD972D9881F900979FB0 /* AppleScriptHelper.swift */,
 				14288DD62C6E015000B9F80C /* AudioPlayer.swift */,
+				FC000000000000000000000B /* DevTransforms.swift */,
+				FC0000000000000000000012 /* SecurityTransforms.swift */,
 				5955950C2E900ED800C66711 /* ApplicationRelauncher.swift */,
 				14288E0B2C6F8EC000B9F80C /* AppIcons.swift */,
 			);
@@ -519,6 +537,7 @@
 				B18654302C6F4590000B926A /* Settings */,
 				B186542F2C6F455E000B926A /* Notch */,
 				9A0887332C7AFF7E00C160EA /* Tabs */,
+				FC0000000000000000000011 /* DevTools */,
 				FC000000000000000000000A /* Todo */,
 				FC0000000000000000000005 /* Focus */,
 				B186542E2C6F453B000B926A /* Music */,
@@ -540,6 +559,7 @@
 				F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */,
 				112FB7342CCF16F70015238C /* NotchSpaceManager.swift */,
 				147163992C5D35FF0068B555 /* MusicManager.swift */,
+				FC000000000000000000000D /* DevToolsManager.swift */,
 				FC0000000000000000000006 /* TodoManager.swift */,
 				FC0000000000000000000001 /* FocusTimerManager.swift */,
 				149E0B962C737D00006418B1 /* WebcamManager.swift */,
@@ -981,6 +1001,10 @@
 				14C08BC12C8E03AD000F8AA0 /* NSImage+Extensions.swift in Sources */,
 				149E0B9A2C737D40006418B1 /* WebcamView.swift in Sources */,
 				1471639A2C5D35FF0068B555 /* MusicManager.swift in Sources */,
+				FC0000000000000000000013 /* SecurityTransforms.swift in Sources */,
+				FC0000000000000000000010 /* DevToolsView.swift in Sources */,
+				FC000000000000000000000E /* DevToolsManager.swift in Sources */,
+				FC000000000000000000000C /* DevTransforms.swift in Sources */,
 				FC0000000000000000000007 /* TodoManager.swift in Sources */,
 				FC0000000000000000000009 /* TodoView.swift in Sources */,
 				FC0000000000000000000002 /* FocusTimerManager.swift in Sources */,

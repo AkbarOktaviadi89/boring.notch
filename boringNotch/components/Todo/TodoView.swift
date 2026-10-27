@@ -5,14 +5,11 @@
 //  Created by Akbar Oktaviadi on 2026-10-27.
 //
 
-import AppKit
 import SwiftUI
 
 struct TodoView: View {
-    @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var todo = TodoManager.shared
     @FocusState private var isFieldFocused: Bool
-    @State private var hostWindow: NSWindow?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -21,16 +18,7 @@ struct TodoView: View {
         }
         .padding(.horizontal, 8)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(WindowReader(window: $hostWindow))
-        .onChange(of: vm.notchState) { _, state in
-            if state == .closed { NotchKeyboardFocus.end(in: hostWindow) }
-        }
-        .onDisappear {
-            NotchKeyboardFocus.end(in: hostWindow)
-        }
-        .onAppear {
-            NotchKeyboardFocus.allow()
-        }
+        .acceptsNotchKeyboardInput()
     }
 
     private var header: some View {
@@ -46,7 +34,7 @@ struct TodoView: View {
                     }
                     .onExitCommand {
                         isFieldFocused = false
-                        NotchKeyboardFocus.returnKeyboard(from: hostWindow)
+                        NotchKeyboardFocus.returnKeyboard()
                     }
             }
             .padding(.horizontal, 10)
@@ -135,27 +123,6 @@ private struct TodoRow: View {
         )
         .contentShape(Rectangle())
         .onHover { isHovering = $0 }
-    }
-}
-
-/// Exposes the NSWindow hosting a SwiftUI view
-private struct WindowReader: NSViewRepresentable {
-    @Binding var window: NSWindow?
-
-    func makeNSView(context: Context) -> NSView {
-        let view = NSView()
-        DispatchQueue.main.async {
-            window = view.window
-        }
-        return view
-    }
-
-    func updateNSView(_ nsView: NSView, context: Context) {
-        if window !== nsView.window {
-            DispatchQueue.main.async {
-                window = nsView.window
-            }
-        }
     }
 }
 

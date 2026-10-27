@@ -183,6 +183,9 @@ extension Defaults.Keys {
     static let todoEnabled = Key<Bool>("todoEnabled", default: true)
     static let todoItems = Key<[TodoItem]>("todoItems", default: [])
 
+    // MARK: Dev Tools
+    static let devToolsEnabled = Key<Bool>("devToolsEnabled", default: true)
+
     // MARK: Calendar
     static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)
     static let hideAllDayEvents = Key<Bool>("hideAllDayEvents", default: false)

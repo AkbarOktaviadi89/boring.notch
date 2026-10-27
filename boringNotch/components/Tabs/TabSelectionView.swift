@@ -19,7 +19,8 @@ let tabs = [
     TabModel(label: "Home", icon: "house.fill", view: .home),
     TabModel(label: "Shelf", icon: "tray.fill", view: .shelf),
     TabModel(label: "Focus", icon: "timer", view: .focus),
-    TabModel(label: "To-do", icon: "checklist", view: .todo)
+    TabModel(label: "To-do", icon: "checklist", view: .todo),
+    TabModel(label: "Dev Tools", icon: "hammer.fill", view: .devTools)
 ]
 
 struct TabSelectionView: View {
@@ -27,6 +28,7 @@ struct TabSelectionView: View {
     @Default(.boringShelf) var boringShelf
     @Default(.focusTimerEnabled) var focusTimerEnabled
     @Default(.todoEnabled) var todoEnabled
+    @Default(.devToolsEnabled) var devToolsEnabled
     @Namespace var animation
 
     private var visibleTabs: [TabModel] {
@@ -36,14 +38,30 @@ struct TabSelectionView: View {
             case .shelf: return boringShelf
             case .focus: return focusTimerEnabled
             case .todo: return todoEnabled
+            case .devTools: return devToolsEnabled
             }
         }
     }
 
     var body: some View {
+        // The tabs share the space left of the physical notch, so squeeze the padding as tabs are added
+        GeometryReader { geo in
+            tabRow(horizontalPadding: horizontalPadding(for: geo.size.width))
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        }
+    }
+
+    private func horizontalPadding(for availableWidth: CGFloat) -> CGFloat {
+        let iconWidth: CGFloat = 18
+        let count = CGFloat(max(visibleTabs.count, 1))
+        let fitting = (availableWidth - count * iconWidth) / (2 * count)
+        return min(15, max(5, fitting.rounded(.down)))
+    }
+
+    private func tabRow(horizontalPadding: CGFloat) -> some View {
         HStack(spacing: 0) {
             ForEach(visibleTabs) { tab in
-                    TabButton(label: tab.label, icon: tab.icon, selected: coordinator.currentView == tab.view) {
+                    TabButton(label: tab.label, icon: tab.icon, selected: coordinator.currentView == tab.view, horizontalPadding: horizontalPadding) {
                         withAnimation(.smooth) {
                             coordinator.currentView = tab.view
                         }

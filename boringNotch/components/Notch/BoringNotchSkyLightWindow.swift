@@ -9,6 +9,7 @@ import Cocoa
 import SkyLightWindow
 import Defaults
 import Combine
+import SwiftUI
 
 extension SkyLightOperator {
     func undelegateWindow(_ window: NSWindow) {
@@ -119,30 +120,89 @@ class BoringNotchSkyLightWindow: NSPanel {
 /// back to the previous app when typing ends.
 @MainActor
 enum NotchKeyboardFocus {
-    private(set) static var isActive = false
+    /// Counted rather than a flag: when switching tabs SwiftUI may show the new view
+    /// before the old one disappears
+    private static var holders = 0
+    private static weak var window: NSWindow?
     private static var previousApp: NSRunningApplication?
 
-    /// Must be called before the click: AppKit asks `canBecomeKey` on mouse down,
+    static var isActive: Bool { holders > 0 }
+
+    /// Must happen before the click: AppKit asks `canBecomeKey` on mouse down,
     /// so allowing it from the click itself is too late.
-    static func allow() {
-        guard !isActive else { return }
-        previousApp = NSWorkspace.shared.frontmostApplication
-        isActive = true
+    static func acquire() {
+        if holders == 0 {
+            previousApp = NSWorkspace.shared.frontmostApplication
+        }
+        holders += 1
+    }
+
+    static func release() {
+        guard holders > 0 else { return }
+        holders -= 1
+        if holders == 0 {
+            returnKeyboard()
+            previousApp = nil
+            window = nil
+        }
+    }
+
+    static func setWindow(_ window: NSWindow?) {
+        if let window { self.window = window }
     }
 
     /// Gives the keyboard back to the previous app but keeps the window allowed to take it again
-    static func returnKeyboard(from window: NSWindow?) {
+    static func returnKeyboard() {
         guard let window, window.isKeyWindow else { return }
         window.makeFirstResponder(nil)
         if let previousApp, previousApp != NSRunningApplication.current {
             previousApp.activate()
         }
     }
+}
 
-    static func end(in window: NSWindow?) {
-        guard isActive else { return }
-        returnKeyboard(from: window)
-        isActive = false
-        previousApp = nil
+extension View {
+    /// Lets text fields in this view receive typing while it is on screen in the open notch
+    func acceptsNotchKeyboardInput() -> some View {
+        modifier(NotchKeyboardInputModifier())
+    }
+}
+
+private struct NotchKeyboardInputModifier: ViewModifier {
+    @EnvironmentObject var vm: BoringViewModel
+    @State private var window: NSWindow?
+
+    func body(content: Content) -> some View {
+        content
+            .background(WindowReader(window: $window))
+            .onAppear { NotchKeyboardFocus.acquire() }
+            .onDisappear { NotchKeyboardFocus.release() }
+            .onChange(of: window) { _, window in
+                NotchKeyboardFocus.setWindow(window)
+            }
+            .onChange(of: vm.notchState) { _, state in
+                if state == .closed { NotchKeyboardFocus.returnKeyboard() }
+            }
+    }
+}
+
+/// Exposes the NSWindow hosting a SwiftUI view
+private struct WindowReader: NSViewRepresentable {
+    @Binding var window: NSWindow?
+
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView()
+        DispatchQueue.main.async {
+            window = view.window
+        }
+        return view
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {
+        if window !== nsView.window {
+            DispatchQueue.main.async {
+                window = nsView.window
+            }
+        }
     }
 }
