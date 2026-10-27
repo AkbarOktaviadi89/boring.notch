@@ -932,8 +932,13 @@ struct About: View {
 struct FocusSettings: View {
     @ObservedObject var focus = FocusTimerManager.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @ObservedObject var flashcards = FlashcardManager.shared
     @Default(.focusTimerEnabled) var focusTimerEnabled
     @Default(.focusTimerDuration) var focusTimerDuration
+    @Default(.pomodoroEnabled) var pomodoroEnabled
+    @Default(.pomodoroShortBreak) var shortBreak
+    @Default(.pomodoroLongBreak) var longBreak
+    @Default(.pomodoroSessionsBeforeLongBreak) var sessionsBeforeLongBreak
 
     var body: some View {
         Form {
@@ -976,6 +981,48 @@ struct FocusSettings: View {
                 Text("Duration")
             } footer: {
                 Text("The length can't be changed while a session is running or paused.")
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+
+            Section {
+                Defaults.Toggle(key: .pomodoroEnabled) {
+                    Text("Pomodoro cycle")
+                }
+                Defaults.Toggle(key: .pomodoroAutoStart) {
+                    Text("Start the next phase automatically")
+                }
+                .disabled(!pomodoroEnabled)
+                Stepper(value: $shortBreak, in: 1...30) {
+                    Text("Short break: \(shortBreak) min")
+                }
+                .disabled(!pomodoroEnabled)
+                Stepper(value: $longBreak, in: 5...60, step: 5) {
+                    Text("Long break: \(longBreak) min")
+                }
+                .disabled(!pomodoroEnabled)
+                Stepper(value: $sessionsBeforeLongBreak, in: 2...8) {
+                    Text("Long break after \(sessionsBeforeLongBreak) focus sessions")
+                }
+                .disabled(!pomodoroEnabled)
+            } header: {
+                Text("Pomodoro")
+            } footer: {
+                Text("Focus, short break, focus, … and a long break after every few focus sessions. Reset starts the cycle over. Focused time, including sessions reset after a minute, shows up in Stats.")
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+            .disabled(!focusTimerEnabled)
+
+            Section {
+                HStack {
+                    Text("\(flashcards.cards.count) cards, \(flashcards.dueCards().count) due now")
+                    Spacer()
+                }
+            } header: {
+                Text("Flashcards")
+            } footer: {
+                Text("Add cards in the Cards section of the Focus tab, one at a time or as a pasted list of \"front :: back\" lines. Good moves a card up a box and shows it again after 1, 3, 7, 14 and then 30 days; Again shows it again in 10 minutes.")
                     .foregroundStyle(.secondary)
                     .font(.caption)
             }

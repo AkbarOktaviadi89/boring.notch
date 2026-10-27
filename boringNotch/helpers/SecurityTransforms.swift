@@ -237,6 +237,153 @@ enum SecurityTransforms {
         return DevToolResult(primary: String(output))
     }
 
+    // MARK: Regex
+
+    /// All matches, one per line; the detail lists capture groups per match
+    static func regexMatches(pattern: String, in text: String) throws -> DevToolResult {
+        guard !pattern.isEmpty else { throw DevToolError(message: "Enter a pattern") }
+        let regex: NSRegularExpression
+        do {
+            regex = try NSRegularExpression(pattern: pattern)
+        } catch {
+            throw DevToolError(message: "Invalid regex")
+        }
+        let matches = regex.matches(in: text, range: NSRange(text.startIndex..., in: text))
+        guard !matches.isEmpty else { throw DevToolError(message: "No matches") }
+
+        let values = matches.compactMap { Range($0.range, in: text).map { String(text[$0]) } }
+        var detail = matches.count == 1 ? "1 match" : "\(matches.count) matches"
+        if regex.numberOfCaptureGroups > 0 {
+            let groups = matches.prefix(20).map { match in
+                let captured = (1...regex.numberOfCaptureGroups).map { index in
+                    Range(match.range(at: index), in: text).map { String(text[$0]) } ?? "–"
+                }
+                return "[\(captured.joined(separator: ", "))]"
+            }
+            detail += " · groups: " + groups.joined(separator: " ")
+        }
+        return DevToolResult(primary: values.joined(separator: "\n"), detail: detail)
+    }
+
+    // MARK: Diff
+
+    /// Larger inputs are cut so the O(n·m) table stays small
+    static let diffLineLimit = 2000
+
+    /// Line diff: "  " unchanged, "- " only in the first text, "+ " only in the second
+    static func lineDiff(_ first: String, _ second: String) -> DevToolResult {
+        let a = Array(diffLines(first).prefix(diffLineLimit))
+        let b = Array(diffLines(second).prefix(diffLineLimit))
+
+        // lcs[i][j]: longest common subsequence of a[i...] and b[j...]
+        var lcs = [[Int32]](repeating: [Int32](repeating: 0, count: b.count + 1), count: a.count + 1)
+        for i in stride(from: a.count - 1, through: 0, by: -1) {
+            for j in stride(from: b.count - 1, through: 0, by: -1) {
+                lcs[i][j] = a[i] == b[j] ? lcs[i + 1][j + 1] + 1 : max(lcs[i + 1][j], lcs[i][j + 1])
+            }
+        }
+
+        var output: [String] = []
+        var added = 0
+        var removed = 0
+        var i = 0
+        var j = 0
+        while i < a.count || j < b.count {
+            if i < a.count, j < b.count, a[i] == b[j] {
+                output.append("  " + a[i])
+                i += 1
+                j += 1
+            } else if j >= b.count || (i < a.count && lcs[i + 1][j] >= lcs[i][j + 1]) {
+                output.append("- " + a[i])
+                removed += 1
+                i += 1
+            } else {
+                output.append("+ " + b[j])
+                added += 1
+                j += 1
+            }
+        }
+        let summary = added == 0 && removed == 0 ? "No differences" : "\(added) added, \(removed) removed"
+        return DevToolResult(primary: output.joined(separator: "\n"), detail: summary)
+    }
+
+    private static func diffLines(_ text: String) -> [String] {
+        var lines = text.replacingOccurrences(of: "\r\n", with: "\n").components(separatedBy: "\n")
+        if lines.count > 1, lines.last == "" { lines.removeLast() }
+        return lines
+    }
+
+    // MARK: IPv4 / CIDR
+
+    /// "192.168.1.10/24" or a plain address (treated as /32)
+    static func cidr(_ input: String) throws -> DevToolResult {
+        let parts = input.trimmingCharacters(in: .whitespacesAndNewlines).split(separator: "/", omittingEmptySubsequences: false)
+        guard (1...2).contains(parts.count), let address = ipv4(String(parts[0])) else {
+            throw DevToolError(message: "Not an IPv4 address or CIDR like 192.168.1.0/24")
+        }
+        let prefix: Int
+        if parts.count == 2 {
+            guard let value = Int(parts[1]), (0...32).contains(value) else {
+                throw DevToolError(message: "Prefix must be between /0 and /32")
+            }
+            prefix = value
+        } else {
+            prefix = 32
+        }
+
+        let mask: UInt32 = prefix == 0 ? 0 : UInt32.max << UInt32(32 - prefix)
+        let network = address & mask
+        let broadcast = network | ~mask
+        let size = UInt64(1) << UInt64(32 - prefix)
+
+        var lines = ["Netmask: \(format(mask)) (wildcard \(format(~mask)))"]
+        switch prefix {
+        case 32:
+            lines.append("Hosts: \(format(network)) (1 address)")
+        case 31:
+            lines.append("Hosts: \(format(network)) – \(format(broadcast)) (2 usable, point-to-point)")
+        default:
+            lines.append("Hosts: \(format(network + 1)) – \(format(broadcast - 1)) (\(size - 2) usable)")
+            lines.append("Broadcast: \(format(broadcast))")
+        }
+        lines.append("Type: \(addressType(address))")
+        return DevToolResult(primary: "\(format(network))/\(prefix)", detail: lines.joined(separator: "\n"))
+    }
+
+    private static func ipv4(_ text: String) -> UInt32? {
+        let octets = text.split(separator: ".", omittingEmptySubsequences: false)
+        guard octets.count == 4 else { return nil }
+        var value: UInt32 = 0
+        for octet in octets {
+            guard !octet.isEmpty, octet.count <= 3, octet.allSatisfy(\.isASCII), octet.allSatisfy(\.isNumber),
+                  let number = UInt32(octet), number <= 255
+            else { return nil }
+            value = value << 8 | number
+        }
+        return value
+    }
+
+    private static func format(_ address: UInt32) -> String {
+        [24, 16, 8, 0].map { String((address >> UInt32($0)) & 0xFF) }.joined(separator: ".")
+    }
+
+    /// Ranges worth knowing when testing for SSRF or exposed services
+    private static func addressType(_ address: UInt32) -> String {
+        func inRange(_ base: String, _ prefix: UInt32) -> Bool {
+            guard let base = ipv4(base) else { return false }
+            let mask: UInt32 = prefix == 0 ? 0 : UInt32.max << (32 - prefix)
+            return address & mask == base & mask
+        }
+        if inRange("10.0.0.0", 8) || inRange("172.16.0.0", 12) || inRange("192.168.0.0", 16) { return "Private (RFC 1918)" }
+        if inRange("127.0.0.0", 8) { return "Loopback" }
+        if inRange("169.254.0.0", 16) { return "Link-local (cloud metadata range)" }
+        if inRange("100.64.0.0", 10) { return "Carrier-grade NAT (RFC 6598)" }
+        if inRange("0.0.0.0", 8) { return "\"This\" network" }
+        if inRange("224.0.0.0", 4) { return "Multicast" }
+        if inRange("240.0.0.0", 4) { return "Reserved" }
+        return "Public"
+    }
+
     // MARK: Smart decode
 
     /// Peels off layers of URL, HTML entity, unicode escape, hex and Base64 encoding until none is left

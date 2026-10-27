@@ -8,55 +8,110 @@
 import Defaults
 import SwiftUI
 
+enum FocusSection: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case timer = "Timer"
+    case stats = "Stats"
+    case cards = "Cards"
+
+    var id: Self { self }
+}
+
+/// The Focus tab: the timer, study stats and flashcards, all about studying
+struct FocusTabView: View {
+    @Default(.focusSection) var section
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            switch section {
+            case .timer: FocusTimerView()
+            case .stats: FocusStatsView()
+            case .cards: FlashcardsView()
+            }
+        }
+        .padding(.horizontal, 8)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+    }
+}
+
+struct FocusSectionPicker: View {
+    @Default(.focusSection) var section
+
+    var body: some View {
+        CapsuleSegmentedPicker(options: FocusSection.allCases, selection: $section, title: \.rawValue)
+    }
+}
+
 struct FocusTimerView: View {
     @ObservedObject var focus = FocusTimerManager.shared
     @Default(.focusTimerDuration) var duration
+    @Default(.pomodoroEnabled) var pomodoroEnabled
+    @Default(.pomodoroSessionsBeforeLongBreak) var sessionsBeforeLongBreak
 
     var body: some View {
-        HStack(spacing: 24) {
-            FocusProgressRing(progress: focus.progress, state: focus.state, lineWidth: 8)
-                .overlay {
-                    VStack(spacing: 2) {
-                        Text(focus.state == .finished ? "Done" : focus.remainingText)
-                            .font(.system(size: 26, weight: .semibold, design: .rounded))
-                            .monospacedDigit()
-                            .contentTransition(.numericText(countsDown: true))
-                            .animation(.smooth, value: focus.remainingText)
-                        Text(statusText)
-                            .font(.caption)
-                            .foregroundStyle(.gray)
-                    }
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 8) {
+                FocusSectionPicker()
+                Spacer()
+                if pomodoroEnabled {
+                    cycleDots
                 }
-                .frame(width: 120, height: 120)
-
-            VStack(alignment: .leading, spacing: 12) {
-                HStack {
-                    Label("Focus", systemImage: "timer")
-                        .font(.headline)
-                    Spacer()
-                    Text("\(focus.completedToday) sessions today")
-                        .font(.caption)
-                        .foregroundStyle(.gray)
-                }
-
-                durationPicker
-                    .disabled(focus.isActive)
-                    .opacity(focus.isActive ? 0.4 : 1)
-
-                controls
+                Text("\(focus.completedToday) today")
+                    .font(.caption)
+                    .foregroundStyle(.gray)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+
+            HStack(spacing: 20) {
+                FocusProgressRing(progress: focus.progress, state: focus.state, lineWidth: 7, isBreak: focus.phase.isBreak)
+                    .overlay {
+                        VStack(spacing: 1) {
+                            Text(focus.state == .finished ? "Done" : focus.remainingText)
+                                .font(.system(size: 22, weight: .semibold, design: .rounded))
+                                .monospacedDigit()
+                                .contentTransition(.numericText(countsDown: true))
+                                .animation(.smooth, value: focus.remainingText)
+                            Text(statusText)
+                                .font(.caption2)
+                                .foregroundStyle(.gray)
+                        }
+                    }
+                    .frame(width: 100, height: 100)
+
+                VStack(alignment: .leading, spacing: 12) {
+                    durationPicker
+                        .disabled(focus.isActive)
+                        .opacity(focus.isActive ? 0.4 : 1)
+
+                    controls
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
         }
-        .padding(.horizontal, 8)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    /// One dot per focus session before the long break
+    private var cycleDots: some View {
+        let total = max(1, sessionsBeforeLongBreak)
+        let filled = focus.phase == .longBreak ? total : focus.completedInCycle % total
+        return HStack(spacing: 3) {
+            ForEach(0..<total, id: \.self) { index in
+                Circle()
+                    .fill(index < filled ? Color.effectiveAccent : Color.white.opacity(0.15))
+                    .frame(width: 6, height: 6)
+            }
+        }
+        .help("Focus sessions in this Pomodoro cycle")
     }
 
     private var statusText: LocalizedStringKey {
-        switch focus.state {
-        case .idle: return "Ready"
-        case .running: return "Focusing"
-        case .paused: return "Paused"
-        case .finished: return "Session complete"
+        switch (focus.state, focus.phase) {
+        case (.finished, .focus): return "Session complete"
+        case (.finished, _): return "Break's up"
+        case (.paused, _): return "Paused"
+        case (.running, .focus): return "Focusing"
+        case (.running, .shortBreak): return "Short break"
+        case (.running, .longBreak): return "Long break"
+        case (.idle, .focus): return "Ready"
+        case (.idle, _): return "Break next"
         }
     }
 
@@ -122,8 +177,22 @@ struct FocusTimerView: View {
                     .background(Capsule().fill(Color(nsColor: .secondarySystemFill)))
             }
             .buttonStyle(PlainButtonStyle())
-            .disabled(focus.state == .idle)
-            .opacity(focus.state == .idle ? 0.4 : 1)
+            .disabled(focus.state == .idle && focus.phase == .focus && focus.completedInCycle == 0)
+            .opacity(focus.state == .idle && focus.phase == .focus && focus.completedInCycle == 0 ? 0.4 : 1)
+
+            if focus.phase.isBreak {
+                Button {
+                    focus.skipBreak()
+                } label: {
+                    Label("Skip", systemImage: "forward.end.fill")
+                        .font(.system(.callout, design: .rounded))
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Capsule().fill(Color(nsColor: .secondarySystemFill)))
+                }
+                .buttonStyle(PlainButtonStyle())
+                .help("End the break and start the next focus session")
+            }
         }
     }
 
@@ -131,7 +200,7 @@ struct FocusTimerView: View {
         switch focus.state {
         case .running: return "Pause"
         case .paused: return "Resume"
-        case .idle, .finished: return "Start"
+        case .idle, .finished: return focus.phase.isBreak ? "Start break" : "Start"
         }
     }
 
@@ -155,6 +224,7 @@ struct FocusProgressRing: View {
     let progress: Double
     let state: FocusTimerManager.State
     let lineWidth: CGFloat
+    var isBreak = false
 
     var body: some View {
         ZStack {
@@ -176,7 +246,7 @@ struct FocusProgressRing: View {
         switch state {
         case .finished: return .green
         case .paused: return .gray
-        case .idle, .running: return .effectiveAccent
+        case .idle, .running: return isBreak ? .mint : .effectiveAccent
         }
     }
 }
@@ -201,7 +271,7 @@ struct FocusLiveActivity: View {
                         .resizable()
                         .foregroundStyle(.green)
                 } else {
-                    FocusProgressRing(progress: focus.progress, state: focus.state, lineWidth: 3)
+                    FocusProgressRing(progress: focus.progress, state: focus.state, lineWidth: 3, isBreak: focus.phase.isBreak)
                 }
             }
             .frame(width: iconSize, height: iconSize)

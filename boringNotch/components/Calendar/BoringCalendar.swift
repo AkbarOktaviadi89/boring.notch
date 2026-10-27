@@ -195,6 +195,17 @@ struct CalendarView: View {
                         .font(.title3)
                         .fontWeight(.light)
                         .foregroundColor(Color(white: 0.65))
+                    Button {
+                        withAnimation(.smooth) { Defaults[.calendarMonthView] = true }
+                    } label: {
+                        Image(systemName: "calendar")
+                            .font(.system(size: 11, weight: .semibold))
+                            .frame(width: 22, height: 18)
+                            .background(Capsule().fill(Color(nsColor: .secondarySystemFill)))
+                            .foregroundStyle(.gray)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .help("Show the whole month")
                 }
 
                 ZStack(alignment: .top) {

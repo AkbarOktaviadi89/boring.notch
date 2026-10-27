@@ -36,20 +36,24 @@ final class DevToolsManager: ObservableObject {
         case html = "HTML"
         case unicode = "Unicode"
         case smart = "Smart"
+        case regex = "Regex"
+        case diff = "Diff"
+        case cidr = "CIDR"
 
         var id: Self { self }
 
         var category: Category {
             switch self {
             case .json, .base64, .url, .uuid, .timestamp, .color: return .dev
-            case .jwt, .hash, .hex, .html, .unicode, .smart: return .security
+            case .jwt, .hash, .hex, .html, .unicode, .smart, .regex, .diff, .cidr: return .security
             }
         }
 
         /// Tools that work on text the user types or pastes
         var takesInput: Bool {
             switch self {
-            case .uuid, .color: return false
+            // Diff takes two texts through its own Paste A / Paste B buttons
+            case .uuid, .color, .diff: return false
             default: return true
             }
         }
@@ -69,6 +73,8 @@ final class DevToolsManager: ObservableObject {
         }
     }
     @Published var input: String = ""
+    /// The regex pattern, or the second text of a diff
+    @Published var secondaryInput: String = ""
     @Published var uppercaseUUID = false
     @Published private(set) var result: DevToolResult?
     @Published private(set) var errorMessage: String?
@@ -128,6 +134,11 @@ final class DevToolsManager: ObservableObject {
         case nil:
             clearOutput()
         }
+    }
+
+    func pasteSecondaryFromClipboard() {
+        secondaryInput = NSPasteboard.general.string(forType: .string) ?? ""
+        clearOutput()
     }
 
     func useCurrentTime() {

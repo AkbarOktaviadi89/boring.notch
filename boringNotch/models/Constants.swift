@@ -178,6 +178,14 @@ extension Defaults.Keys {
     static let focusTimerLiveActivity = Key<Bool>("focusTimerLiveActivity", default: true)
     static let focusCompletedCount = Key<Int>("focusCompletedCount", default: 0)
     static let focusCompletedDate = Key<Date>("focusCompletedDate", default: .distantPast)
+    static let focusSection = Key<FocusSection>("focusSection", default: .timer)
+    static let pomodoroEnabled = Key<Bool>("pomodoroEnabled", default: true)
+    static let pomodoroAutoStart = Key<Bool>("pomodoroAutoStart", default: true)
+    static let pomodoroShortBreak = Key<Int>("pomodoroShortBreak", default: 5)
+    static let pomodoroLongBreak = Key<Int>("pomodoroLongBreak", default: 15)
+    static let pomodoroSessionsBeforeLongBreak = Key<Int>("pomodoroSessionsBeforeLongBreak", default: 4)
+    static let studySecondsByDay = Key<[String: Int]>("studySecondsByDay", default: [:])
+    static let flashcards = Key<[Flashcard]>("flashcards", default: [])
 
     // MARK: To-do
     static let todoEnabled = Key<Bool>("todoEnabled", default: true)
@@ -193,6 +201,8 @@ extension Defaults.Keys {
     static let monitorSection = Key<MonitorSection>("monitorSection", default: .system)
 
     // MARK: Calendar
+    /// Shows the whole month across the home tab instead of the day wheel
+    static let calendarMonthView = Key<Bool>("calendarMonthView", default: false)
     static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)
     static let hideAllDayEvents = Key<Bool>("hideAllDayEvents", default: false)
     static let showFullEventTitles = Key<Bool>("showFullEventTitles", default: false)

@@ -34,17 +34,28 @@ struct MonitorSectionPicker: View {
     @Default(.monitorSection) var section
 
     var body: some View {
+        CapsuleSegmentedPicker(options: MonitorSection.allCases, selection: $section, title: \.rawValue)
+    }
+}
+
+/// Small segmented control for switching between the sections of a notch tab
+struct CapsuleSegmentedPicker<Option: Hashable>: View {
+    let options: [Option]
+    @Binding var selection: Option
+    let title: (Option) -> String
+
+    var body: some View {
         HStack(spacing: 0) {
-            ForEach(MonitorSection.allCases) { option in
+            ForEach(options, id: \.self) { option in
                 Button {
-                    withAnimation(.smooth) { section = option }
+                    withAnimation(.smooth) { selection = option }
                 } label: {
-                    Text(option.rawValue)
+                    Text(title(option))
                         .font(.system(.caption, design: .rounded, weight: .semibold))
                         .padding(.horizontal, 10)
                         .padding(.vertical, 4)
-                        .background(Capsule().fill(section == option ? Color.white.opacity(0.2) : .clear))
-                        .foregroundStyle(section == option ? .white : .gray)
+                        .background(Capsule().fill(selection == option ? Color.white.opacity(0.2) : .clear))
+                        .foregroundStyle(selection == option ? .white : .gray)
                 }
                 .buttonStyle(PlainButtonStyle())
             }

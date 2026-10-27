@@ -423,6 +423,7 @@ struct NotchHomeView: View {
     @ObservedObject var webcamManager = WebcamManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @Default(.calendarMonthView) var calendarMonthView
     let albumArtNamespace: Namespace.ID
 
     var body: some View {
@@ -439,7 +440,23 @@ struct NotchHomeView: View {
         Defaults[.showMirror] && webcamManager.cameraAvailable && vm.isCameraExpanded
     }
 
+    @ViewBuilder
     private var mainContent: some View {
+        if Defaults[.showCalendar] && calendarMonthView {
+            // The month needs the full width, so it takes the place of the player and the camera
+            MonthCalendarView()
+                .onHover { isHovering in
+                    vm.isHoveringCalendar = isHovering
+                }
+                .environmentObject(vm)
+                .transition(.opacity)
+                .blur(radius: vm.notchState == .closed ? 30 : 0)
+        } else {
+            playerAndCalendar
+        }
+    }
+
+    private var playerAndCalendar: some View {
         HStack(alignment: .top, spacing: (shouldShowCamera && Defaults[.showCalendar]) ? 10 : 15) {
             MusicPlayerView(albumArtNamespace: albumArtNamespace)
 

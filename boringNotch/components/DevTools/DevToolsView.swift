@@ -26,50 +26,52 @@ struct DevToolsView: View {
 
     private var toolPicker: some View {
         HStack(spacing: 6) {
-            HStack(spacing: 0) {
-                ForEach(DevToolsManager.Category.allCases) { category in
-                    Button {
-                        withAnimation(.smooth) { tools.category = category }
-                    } label: {
-                        Text(category.rawValue)
-                            .font(.system(.caption, design: .rounded, weight: .semibold))
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 4)
-                            .background(Capsule().fill(tools.category == category ? Color.white.opacity(0.2) : .clear))
-                            .foregroundStyle(tools.category == category ? .white : .gray)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                }
-            }
-            .padding(2)
-            .background(Capsule().fill(Color(nsColor: .secondarySystemFill)))
+            CapsuleSegmentedPicker(options: DevToolsManager.Category.allCases, selection: $tools.category, title: \.rawValue)
 
-            ForEach(tools.category.tools) { tool in
-                Button {
-                    withAnimation(.smooth) { tools.tool = tool }
-                } label: {
-                    Text(tool.rawValue)
-                        .font(.system(.caption, design: .rounded, weight: .medium))
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 4)
-                        .background(
-                            Capsule().fill(
-                                tools.tool == tool
-                                    ? Color.effectiveAccent.opacity(0.35)
-                                    : Color(nsColor: .secondarySystemFill)
-                            )
-                        )
-                        .foregroundStyle(tools.tool == tool ? .white : .gray)
+            // Tight spacing so all nine Security tools fit next to the switch
+            HStack(spacing: 4) {
+                ForEach(tools.category.tools) { tool in
+                    toolChip(tool)
                 }
-                .buttonStyle(PlainButtonStyle())
             }
         }
+    }
+
+    private func toolChip(_ tool: DevToolsManager.Tool) -> some View {
+        Button {
+            withAnimation(.smooth) { tools.tool = tool }
+        } label: {
+            Text(tool.rawValue)
+                .font(.system(.caption, design: .rounded, weight: .medium))
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(
+                    Capsule().fill(
+                        tools.tool == tool
+                            ? Color.effectiveAccent.opacity(0.35)
+                            : Color(nsColor: .secondarySystemFill)
+                    )
+                )
+                .foregroundStyle(tools.tool == tool ? .white : .gray)
+        }
+        .buttonStyle(PlainButtonStyle())
     }
 
     // MARK: - Input and actions
 
     private var controls: some View {
         HStack(spacing: 6) {
+            if tools.tool == .regex {
+                TextField("Pattern", text: $tools.secondaryInput)
+                    .textFieldStyle(.plain)
+                    .font(.system(.callout, design: .monospaced))
+                    .lineLimit(1)
+                    .onSubmit(runPrimaryAction)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(Capsule().fill(Color(nsColor: .secondarySystemFill)))
+                    .frame(width: 150)
+            }
             if tools.tool.takesInput {
                 inputField
                 actionButton("Paste", icon: "doc.on.clipboard") {
@@ -109,6 +111,21 @@ struct DevToolsView: View {
                 actionButton("Unescape") { tools.run(SecurityTransforms.unicodeUnescape) }
             case .smart:
                 actionButton("Decode all layers", primary: true) { tools.run(SecurityTransforms.smartDecode) }
+            case .regex:
+                actionButton("Test", primary: true) { runPrimaryAction() }
+            case .diff:
+                actionButton("Paste A", icon: "doc.on.clipboard") { tools.pasteFromClipboard() }
+                Text(lineCountLabel(tools.input))
+                    .font(.caption)
+                    .foregroundStyle(.gray)
+                actionButton("Paste B", icon: "doc.on.clipboard") { tools.pasteSecondaryFromClipboard() }
+                Text(lineCountLabel(tools.secondaryInput))
+                    .font(.caption)
+                    .foregroundStyle(.gray)
+                Spacer()
+                actionButton("Compare", primary: true) { runPrimaryAction() }
+            case .cidr:
+                actionButton("Analyze", primary: true) { tools.run(SecurityTransforms.cidr) }
             case .timestamp:
                 actionButton("Convert", primary: true) { tools.run { try DevTransforms.convertTimestamp($0) } }
                 actionButton("Now") { tools.useCurrentTime() }
@@ -157,8 +174,16 @@ struct DevToolsView: View {
         case .html: return "Text or &lt;b&gt;"
         case .unicode: return "Text or \\u0041"
         case .smart: return "Encoded payload, any mix of layers"
-        case .uuid, .color: return ""
+        case .regex: return "Text to search"
+        case .cidr: return "192.168.1.0/24 or an IP"
+        case .uuid, .color, .diff: return ""
         }
+    }
+
+    private func lineCountLabel(_ text: String) -> String {
+        guard !text.isEmpty else { return "empty" }
+        let lines = text.split(separator: "\n", omittingEmptySubsequences: false).count
+        return lines == 1 ? "1 line" : "\(lines) lines"
     }
 
     /// Return in the input field runs the first action of the tool
@@ -174,6 +199,9 @@ struct DevToolsView: View {
         case .html: tools.run { SecurityTransforms.htmlEncode($0) }
         case .unicode: tools.run { SecurityTransforms.unicodeEscape($0) }
         case .smart: tools.run(SecurityTransforms.smartDecode)
+        case .regex: tools.run { [pattern = tools.secondaryInput] in try SecurityTransforms.regexMatches(pattern: pattern, in: $0) }
+        case .diff: tools.show(SecurityTransforms.lineDiff(tools.input, tools.secondaryInput))
+        case .cidr: tools.run(SecurityTransforms.cidr)
         case .uuid, .color: break
         }
     }

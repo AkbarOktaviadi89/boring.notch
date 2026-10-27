@@ -18,7 +18,10 @@ LOGIC_SOURCES := \
 	boringNotch/helpers/SecurityTransforms.swift \
 	boringNotch/helpers/DevServerParser.swift \
 	boringNotch/helpers/SystemStats.swift \
-	boringNotch/helpers/ClipboardDetector.swift
+	boringNotch/helpers/ClipboardDetector.swift \
+	boringNotch/helpers/StudyStats.swift \
+	boringNotch/helpers/Flashcards.swift \
+	boringNotch/helpers/MonthGrid.swift
 TEST_SOURCES := $(wildcard Tests/LogicTests/*.swift)
 TEST_BINARY := build/tests/logic-tests
 

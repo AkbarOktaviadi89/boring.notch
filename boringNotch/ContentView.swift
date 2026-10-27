@@ -379,7 +379,7 @@ struct ContentView: View {
                     case .shelf:
                         ShelfView()
                     case .focus:
-                        FocusTimerView()
+                        FocusTabView()
                     case .todo:
                         TodoView()
                     case .devTools:

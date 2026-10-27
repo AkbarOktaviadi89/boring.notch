@@ -193,6 +193,21 @@ class CalendarManager: ObservableObject {
         self.events = eventsResult
     }
     
+    /// Days ("yyyy-MM-dd") in the month view's six weeks that have at least one event
+    @Published var monthEventDays: Set<String> = []
+
+    func updateMonthEventDays(forMonthContaining date: Date) async {
+        let days = MonthGrid.days(forMonthContaining: date)
+        guard let first = days.first, let last = days.last,
+              let end = Calendar.current.date(byAdding: .day, value: 1, to: last)
+        else { return }
+        let events = await calendarService.events(from: first, to: end, calendars: selectedCalendars.map { $0.id })
+        // Same filtering as the event list, so a dot never points at a day that shows no events
+        monthEventDays = MonthGrid.eventDayKeys(
+            EventListView.filteredEvents(events: events).map { ($0.start, $0.end, $0.isAllDay) }
+        )
+    }
+
     func setReminderCompleted(reminderID: String, completed: Bool) async {
         await calendarService.setReminderCompleted(reminderID: reminderID, completed: completed)
         // Refresh events after updating
