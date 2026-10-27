@@ -143,3 +143,20 @@ private struct ScrollMonitor: NSViewRepresentable {
         }
     }
 }
+
+extension View {
+    /// Keeps the swipe-up-to-close gesture from firing while the user scrolls this content
+    func allowsScrollingInOpenNotch() -> some View {
+        modifier(ScrollableNotchContentModifier())
+    }
+}
+
+private struct ScrollableNotchContentModifier: ViewModifier {
+    @EnvironmentObject var vm: BoringViewModel
+
+    func body(content: Content) -> some View {
+        content
+            .onHover { vm.isHoveringScrollableContent = $0 }
+            .onDisappear { vm.isHoveringScrollableContent = false }
+    }
+}

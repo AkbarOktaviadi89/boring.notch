@@ -77,6 +77,7 @@ struct TodoView: View {
                 }
                 .animation(.smooth, value: todo.sortedItems)
             }
+            .allowsScrollingInOpenNotch()
         }
     }
 }

@@ -30,6 +30,8 @@ class BoringViewModel: NSObject, ObservableObject {
 
     @Published var edgeAutoOpenActive: Bool = false
     @Published var isHoveringCalendar: Bool = false
+    /// Like isHoveringCalendar, for any other list in the open notch: scrolling it must not close the notch
+    @Published var isHoveringScrollableContent: Bool = false
     @Published var isBatteryPopoverActive: Bool = false
 
     @Published var screenUUID: String?

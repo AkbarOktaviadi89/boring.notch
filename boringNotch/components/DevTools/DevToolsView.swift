@@ -233,6 +233,7 @@ struct DevToolsView: View {
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                     }
+                    .allowsScrollingInOpenNotch()
                 } else {
                     Text("Result appears here")
                         .font(.callout)
