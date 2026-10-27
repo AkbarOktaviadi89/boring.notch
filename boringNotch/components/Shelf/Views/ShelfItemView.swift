@@ -269,8 +269,8 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
             var draggingItems: [NSDraggingItem] = []
 
             for dragItem in itemsToDrag {
-                if let pasteboardItem = createPasteboardItem(for: dragItem) {
-                    let draggingItem = NSDraggingItem(pasteboardWriter: pasteboardItem)
+                if let pasteboardWriter = createPasteboardWriter(for: dragItem) {
+                    let draggingItem = NSDraggingItem(pasteboardWriter: pasteboardWriter)
 
                     // Use the drag preview image
                     let image = dragPreviewImage ?? dragItem.icon
@@ -291,7 +291,7 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
             beginDraggingSession(with: draggingItems, event: event, source: self)
         }
         
-        private func createPasteboardItem(for item: ShelfItem) -> NSPasteboardItem? {
+        private func createPasteboardWriter(for item: ShelfItem) -> NSPasteboardWriting? {
             let pasteboardItem = NSPasteboardItem()
 
             switch item.kind {
@@ -300,16 +300,17 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
                     pasteboardItem.setString(item.displayName, forType: .string)
                     return pasteboardItem
                 }
-                
+
                 // Start accessing security-scoped resource and keep it active during drag
                 if url.startAccessingSecurityScopedResource() {
                     draggedURLs.append(url)
                     NSLog("🔐 Started security-scoped access for drag: \(url.path)")
                 }
-                
-                pasteboardItem.setString(url.absoluteString, forType: .fileURL)
-                pasteboardItem.setString(url.path, forType: .string)
-                return pasteboardItem
+
+                // Write the URL object itself, like Finder does, rather than its string. Only then does
+                // the drag carry the file's type and a sandbox extension, which sandboxed Mac Catalyst
+                // apps such as WhatsApp need to accept the file; a raw file URL string reaches them as text.
+                return url as NSURL
 
             case .text(let string):
                 pasteboardItem.setString(string, forType: .string)
