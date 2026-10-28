@@ -284,12 +284,66 @@ struct FocusLiveActivity: View {
             Text(focus.state == .finished ? "Done" : focus.remainingText)
                 .font(.system(size: 12, weight: .semibold, design: .rounded))
                 .monospacedDigit()
-                .foregroundStyle(focus.state == .paused ? .gray : .white)
+                // Mint during a break, like the ring, so a break never passes for focus time
+                .foregroundStyle(focus.state == .paused ? .gray : focus.phase.isBreak ? .mint : .white)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
                 .frame(width: sideWidth)
         }
         .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
+    }
+}
+
+/// Shown on the closed notch for a few seconds when a phase ends: what starts now, in that phase's color
+struct FocusPhaseLiveActivity: View {
+    @EnvironmentObject var vm: BoringViewModel
+    let announcement: PhaseAnnouncement
+
+    static let sideWidth: CGFloat = 96
+
+    private var color: Color {
+        switch announcement.next {
+        case nil: return .green
+        case .focus: return .orange
+        case .shortBreak, .longBreak: return .mint
+        }
+    }
+
+    private var icon: String {
+        switch announcement.next {
+        case nil: return "checkmark.circle.fill"
+        case .focus: return "brain.head.profile"
+        case .shortBreak, .longBreak: return "cup.and.saucer.fill"
+        }
+    }
+
+    var body: some View {
+        HStack {
+            HStack(spacing: 6) {
+                Image(systemName: icon)
+                    .font(.system(size: 13, weight: .semibold))
+                    .symbolEffect(.pulse, options: .repeating)
+                Text(announcement.phaseName)
+                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+            }
+            .foregroundStyle(color)
+            .frame(width: Self.sideWidth)
+
+            Rectangle()
+                .fill(.black)
+                .frame(width: vm.closedNotchSize.width + -cornerRadiusInsets.closed.top)
+
+            Text(announcement.detail)
+                .font(.system(size: 12, weight: .semibold, design: .rounded))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+                .frame(width: Self.sideWidth)
+        }
+        .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
+        .help(announcement.title)
     }
 }
 

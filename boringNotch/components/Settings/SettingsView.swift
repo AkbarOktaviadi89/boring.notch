@@ -944,6 +944,8 @@ struct FocusSettings: View {
     @Default(.pomodoroShortBreak) var shortBreak
     @Default(.pomodoroLongBreak) var longBreak
     @Default(.pomodoroSessionsBeforeLongBreak) var sessionsBeforeLongBreak
+    @Default(.focusTimerSound) var focusTimerSound
+    @Default(.focusAlertRings) var alertRings
 
     var body: some View {
         Form {
@@ -967,8 +969,22 @@ struct FocusSettings: View {
                     Text("Play sound when a session ends")
                 }
                 .disabled(!focusTimerEnabled)
+                Picker("Ring", selection: $alertRings) {
+                    ForEach(FocusTimerManager.alertRingOptions, id: \.self) { times in
+                        Text(times == 1 ? "Once" : "\(times) times").tag(times)
+                    }
+                }
+                .disabled(!focusTimerEnabled || !focusTimerSound)
+                Defaults.Toggle(key: .focusPhaseNotification) {
+                    Text("Show a notification when a session or break ends")
+                }
+                .disabled(!focusTimerEnabled)
             } header: {
                 Text("General")
+            } footer: {
+                Text("When a focus session or break ends, the closed notch also shows what starts next for a few seconds: orange for focus, mint for a break. Pressing any timer button stops the ringing.")
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
             }
 
             Section {

@@ -8,6 +8,7 @@
 import AppKit
 import Combine
 import Defaults
+import UserNotifications
 
 @MainActor
 final class FocusTimerManager: ObservableObject {
@@ -25,6 +26,9 @@ final class FocusTimerManager: ObservableObject {
     static let presets = [15, 25, 45, 60]
     /// Focus shorter than this when a session is reset doesn't count as study time
     static let minimumRecordedSeconds = 60
+    /// How long the closed notch shows what comes next after a phase ends
+    static let announcementSeconds: Double = 12
+    static let alertRingOptions = [1, 3, 5]
 
     @Published private(set) var state: State = .idle
     @Published private(set) var phase: PomodoroPhase = .focus
@@ -35,10 +39,14 @@ final class FocusTimerManager: ObservableObject {
     @Published private(set) var completedInCycle: Int = 0
     /// "yyyy-MM-dd" -> focused seconds, for the Stats section
     @Published private(set) var studyLog: [String: Int] = Defaults[.studySecondsByDay]
+    /// Set for a few seconds after a phase ends, so the closed notch can say what starts next
+    @Published private(set) var announcement: PhaseAnnouncement?
 
     private var endDate: Date?
     private var timer: Timer?
     private var finishedDismissTask: Task<Void, Never>?
+    private var announcementTask: Task<Void, Never>?
+    private var alertSoundTask: Task<Void, Never>?
 
     private init() {
         let duration = TimeInterval(Defaults[.focusTimerDuration] * 60)
@@ -101,6 +109,11 @@ final class FocusTimerManager: ObservableObject {
     }
 
     func start() {
+        stopAlerts()
+        begin()
+    }
+
+    private func begin() {
         switch state {
         case .running:
             return
@@ -118,6 +131,7 @@ final class FocusTimerManager: ObservableObject {
 
     func pause() {
         guard state == .running else { return }
+        stopAlerts()
         tick()
         stopTicking()
         endDate = nil
@@ -137,6 +151,7 @@ final class FocusTimerManager: ObservableObject {
             }
         }
         stopTicking()
+        stopAlerts()
         finishedDismissTask?.cancel()
         endDate = nil
         state = .idle
@@ -149,6 +164,7 @@ final class FocusTimerManager: ObservableObject {
     /// Ends a break early and moves on to the next focus session
     func skipBreak() {
         guard phase.isBreak else { return }
+        stopAlerts()
         stopTicking()
         finishedDismissTask?.cancel()
         endDate = nil
@@ -156,7 +172,7 @@ final class FocusTimerManager: ObservableObject {
         phase = .focus
         sessionDuration = Self.duration(of: .focus)
         remaining = sessionDuration
-        if Defaults[.pomodoroAutoStart] { start() }
+        if Defaults[.pomodoroAutoStart] { begin() }
     }
 
     // MARK: - Ticking
@@ -198,13 +214,12 @@ final class FocusTimerManager: ObservableObject {
             recordCompletedSession()
             completedInCycle += 1
         }
-        if Defaults[.focusTimerSound] {
-            // A different sound when a break ends, so it's clear what starts next
-            NSSound(named: ended == .focus ? "Glass" : "Hero")?.play()
-        }
-
         guard Defaults[.pomodoroEnabled] else {
             state = .finished
+            announce(PhaseAnnouncement(
+                ended: ended, next: nil, nextMinutes: 0, completedInCycle: completedInCycle,
+                sessionsBeforeLongBreak: Defaults[.pomodoroSessionsBeforeLongBreak], autoStarted: false
+            ))
             // Keep the "done" state visible for a while, then go back to idle
             scheduleDismiss { $0.reset() }
             return
@@ -217,13 +232,75 @@ final class FocusTimerManager: ObservableObject {
         )
         sessionDuration = Self.duration(of: phase)
         remaining = sessionDuration
-        if Defaults[.pomodoroAutoStart] {
+        let autoStart = Defaults[.pomodoroAutoStart]
+        if autoStart {
             state = .idle
-            start()
+            begin()
         } else {
             // Shows "Done" briefly, then waits with the next phase ready to start
             state = .finished
             scheduleDismiss { $0.state = .idle }
+        }
+        announce(PhaseAnnouncement(
+            ended: ended, next: phase, nextMinutes: Int(sessionDuration / 60), completedInCycle: completedInCycle,
+            sessionsBeforeLongBreak: Defaults[.pomodoroSessionsBeforeLongBreak], autoStarted: autoStart
+        ))
+    }
+
+    // MARK: - Phase-change alerts
+
+    /// The phase changes while you're heads-down, so say it on the notch, with a notification and a few rings
+    private func announce(_ announcement: PhaseAnnouncement) {
+        self.announcement = announcement
+        announcementTask?.cancel()
+        announcementTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(Self.announcementSeconds))
+            guard !Task.isCancelled else { return }
+            self?.announcement = nil
+        }
+        if Defaults[.focusTimerSound] {
+            ring(ended: announcement.ended, times: Defaults[.focusAlertRings])
+        }
+        if Defaults[.focusPhaseNotification] {
+            postNotification(announcement)
+        }
+    }
+
+    /// Any button pressed means the change was noticed
+    private func stopAlerts() {
+        announcementTask?.cancel()
+        alertSoundTask?.cancel()
+        announcement = nil
+    }
+
+    private func ring(ended: PomodoroPhase, times: Int) {
+        alertSoundTask?.cancel()
+        // A different sound when a break ends, so it's clear what starts next
+        guard let sound = NSSound(named: ended == .focus ? "Glass" : "Hero") else { return }
+        alertSoundTask = Task {
+            for ring in 0..<max(1, times) {
+                if ring > 0 {
+                    try? await Task.sleep(for: .seconds(1.8))
+                    guard !Task.isCancelled else { return }
+                }
+                sound.stop()
+                sound.play()
+            }
+        }
+    }
+
+    private func postNotification(_ announcement: PhaseAnnouncement) {
+        let center = UNUserNotificationCenter.current()
+        // macOS asks for permission the first time only
+        center.requestAuthorization(options: [.alert]) { granted, _ in
+            guard granted else { return }
+            let content = UNMutableNotificationContent()
+            content.title = announcement.title
+            content.body = announcement.body
+            // The timer rings on its own, and stays quiet when its sound is off
+            content.sound = nil
+            // One identifier, so each phase change replaces the previous notification
+            center.add(UNNotificationRequest(identifier: "focus-phase", content: content, trigger: nil))
         }
     }
 

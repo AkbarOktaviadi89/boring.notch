@@ -71,6 +71,8 @@ struct ContentView: View {
             && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
         {
             chinWidth = 640
+        } else if showFocusAnnouncement {
+            chinWidth += (2 * FocusPhaseLiveActivity.sideWidth + 20)
         } else if showTodoReminder || showClipboardSuggestion || showFocusLiveActivity {
             chinWidth += (2 * FocusLiveActivity.sideWidth(notchHeight: vm.effectiveClosedNotchHeight) + 20)
         } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
@@ -86,6 +88,12 @@ struct ContentView: View {
         }
 
         return chinWidth
+    }
+
+    /// Comes before every other closed-notch activity: a phase change is the one thing not to miss
+    private var showFocusAnnouncement: Bool {
+        vm.notchState == .closed && !vm.hideOnClosed && !coordinator.expandingView.show
+            && focusTimer.announcement != nil && focusTimerEnabled
     }
 
     private var showTodoReminder: Bool {
@@ -317,6 +325,10 @@ struct ContentView: View {
                         .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
                       } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && vm.notchState == .closed {
                           InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
+                              .transition(.opacity)
+                      } else if showFocusAnnouncement, let announcement = focusTimer.announcement {
+                          FocusPhaseLiveActivity(announcement: announcement)
+                              .frame(alignment: .center)
                               .transition(.opacity)
                       } else if showTodoReminder, let count = todoReminder.activeCount {
                           TodoReminderLiveActivity(count: count)

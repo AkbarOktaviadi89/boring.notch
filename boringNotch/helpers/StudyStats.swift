@@ -28,6 +28,55 @@ enum PomodoroPlan {
     }
 }
 
+/// What the notch and the notification say when a phase ends
+struct PhaseAnnouncement: Equatable {
+    let ended: PomodoroPhase
+    /// nil when Pomodoro is off and the timer just stops
+    let next: PomodoroPhase?
+    let nextMinutes: Int
+    /// Focus sessions finished in this cycle, counting the one that just ended
+    let completedInCycle: Int
+    let sessionsBeforeLongBreak: Int
+    /// Whether the next phase is already running
+    let autoStarted: Bool
+
+    /// Left of the closed notch: what starts now
+    var phaseName: String {
+        switch next {
+        case nil: return "Done"
+        case .focus: return "Focus"
+        case .shortBreak: return "Break"
+        case .longBreak: return "Long break"
+        }
+    }
+
+    /// Right of the closed notch
+    var detail: String {
+        next == nil ? "Nice work" : "\(nextMinutes) min"
+    }
+
+    var title: String {
+        switch next {
+        case nil: return "Focus session done"
+        case .focus: return "Break over, back to focus"
+        case .shortBreak, .longBreak: return "Focus done, time for a break"
+        }
+    }
+
+    var body: String {
+        let every = max(1, sessionsBeforeLongBreak)
+        let doneInRound = completedInCycle == 0 ? 0 : (completedInCycle - 1) % every + 1
+        let phaseText: String
+        switch next {
+        case nil: return "Nice work. Start another session from the notch when you're ready."
+        case .focus: phaseText = "Focus, \(nextMinutes) min"
+        case .shortBreak: phaseText = "Short break, \(nextMinutes) min. \(doneInRound) of \(every) sessions done"
+        case .longBreak: phaseText = "Long break, \(nextMinutes) min. You finished \(every) sessions"
+        }
+        return phaseText + (autoStarted ? " — already running." : ". Start it from the notch when you're ready.")
+    }
+}
+
 struct StudyDay: Equatable {
     let date: Date
     let seconds: Int

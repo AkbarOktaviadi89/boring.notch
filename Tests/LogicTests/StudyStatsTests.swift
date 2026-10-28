@@ -47,4 +47,21 @@ func runStudyStatsTests() {
     check("pomodoro long break again at 8", "\(PomodoroPlan.next(after: .focus, completedFocusSessions: 8, sessionsBeforeLongBreak: 4))", "longBreak")
     check("pomodoro after short break", "\(PomodoroPlan.next(after: .shortBreak, completedFocusSessions: 1, sessionsBeforeLongBreak: 4))", "focus")
     check("pomodoro after long break", "\(PomodoroPlan.next(after: .longBreak, completedFocusSessions: 4, sessionsBeforeLongBreak: 4))", "focus")
+
+    // Phase-change announcements
+    func say(_ ended: PomodoroPhase, _ next: PomodoroPhase?, _ minutes: Int, done: Int, auto: Bool = true) -> PhaseAnnouncement {
+        PhaseAnnouncement(ended: ended, next: next, nextMinutes: minutes, completedInCycle: done, sessionsBeforeLongBreak: 4, autoStarted: auto)
+    }
+    check("announce break label", say(.focus, .shortBreak, 5, done: 1).phaseName, "Break")
+    check("announce long break label", say(.focus, .longBreak, 15, done: 4).phaseName, "Long break")
+    check("announce focus label", say(.shortBreak, .focus, 25, done: 1).detail, "25 min")
+    check("announce done label", say(.focus, nil, 0, done: 1).phaseName, "Done")
+    check("announce done detail", say(.focus, nil, 0, done: 1).detail, "Nice work")
+    check("announce break title", say(.focus, .shortBreak, 5, done: 1).title, "Focus done, time for a break")
+    check("announce focus title", say(.shortBreak, .focus, 25, done: 1).title, "Break over, back to focus")
+    check("announce break body", say(.focus, .shortBreak, 5, done: 2).body, "Short break, 5 min. 2 of 4 sessions done — already running.")
+    check("announce body second round", say(.focus, .shortBreak, 5, done: 6).body, "Short break, 5 min. 2 of 4 sessions done — already running.")
+    check("announce long break body", say(.focus, .longBreak, 15, done: 4).body, "Long break, 15 min. You finished 4 sessions — already running.")
+    check("announce waits", say(.shortBreak, .focus, 25, done: 1, auto: false).body, "Focus, 25 min. Start it from the notch when you're ready.")
+    contains("announce done body", say(.focus, nil, 0, done: 1).body, "Nice work")
 }

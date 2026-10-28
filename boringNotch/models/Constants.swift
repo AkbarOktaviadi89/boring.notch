@@ -176,6 +176,8 @@ extension Defaults.Keys {
     static let focusTimerDuration = Key<Int>("focusTimerDuration", default: 25)
     static let focusTimerSound = Key<Bool>("focusTimerSound", default: true)
     static let focusTimerLiveActivity = Key<Bool>("focusTimerLiveActivity", default: true)
+    static let focusAlertRings = Key<Int>("focusAlertRings", default: 3)
+    static let focusPhaseNotification = Key<Bool>("focusPhaseNotification", default: true)
     static let focusCompletedCount = Key<Int>("focusCompletedCount", default: 0)
     static let focusCompletedDate = Key<Date>("focusCompletedDate", default: .distantPast)
     static let focusSection = Key<FocusSection>("focusSection", default: .timer)
