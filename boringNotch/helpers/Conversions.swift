@@ -238,8 +238,9 @@ enum Conversions {
         nativeDocuments.contains(ext.lowercased())
     }
 
-    /// Opens `input` in the app, saves it as a PDF at `output`, and quits the app again if it wasn't running.
-    /// Paths are POSIX; Office wants old-style HFS paths, so the script converts them.
+    /// Opens `input` in the app and saves it as a PDF at `output`. Paths are POSIX; Office wants old-style
+    /// HFS paths, so the script converts them. PowerPoint may still be writing the PDF when the command
+    /// returns, so the document is closed separately, once the PDF is there (`closeScript`).
     static func exportScript(app: DocumentApp, input: String, output: String) -> String {
         let inFile = "POSIX file \(quoted(input))"
         let outPath = "(POSIX file \(quoted(output))) as string"
@@ -247,40 +248,50 @@ enum Conversions {
         switch app {
         case .word:
             body = """
-                open \(inFile)
-                set theDoc to active document
-                save as theDoc file name \(outPath) file format format PDF
-                close theDoc saving no
+                    open \(inFile)
+                    save as active document file name \(outPath) file format format PDF
             """
         case .excel:
             body = """
-                open \(inFile)
-                set theBook to active workbook
-                save workbook as theBook filename \(outPath) file format PDF file format
-                close theBook saving no
+                    open \(inFile)
+                    save workbook as active workbook filename \(outPath) file format PDF file format
             """
         case .powerPoint:
             body = """
-                open \(inFile)
-                set thePresentation to active presentation
-                save thePresentation in \(outPath) as save as PDF
-                close thePresentation
+                    open \(inFile)
+                    save active presentation in \(outPath) as save as PDF
             """
         case .pages, .numbers, .keynote:
             body = """
-                set theDoc to open \(inFile)
-                export theDoc to POSIX file \(quoted(output)) as PDF
-                close theDoc saving no
+                    set theDoc to open \(inFile)
+                    export theDoc to POSIX file \(quoted(output)) as PDF
             """
         }
         return """
-        set wasRunning to application id "\(app.rawValue)" is running
         with timeout of 300 seconds
             tell application id "\(app.rawValue)"
         \(body)
-                if not wasRunning then quit saving no
             end tell
         end timeout
+        """
+    }
+
+    /// Closes the document the export opened without saving it, and quits the app when the export launched it
+    static func closeScript(app: DocumentApp, quit: Bool) -> String {
+        let close: String
+        switch app {
+        case .word: close = "close active document saving no"
+        case .excel: close = "close active workbook saving no"
+        case .powerPoint: close = "close active presentation"
+        case .pages, .numbers, .keynote: close = "close front document saving no"
+        }
+        return """
+        tell application id "\(app.rawValue)"
+            try
+                \(close)
+            end try
+            \(quit ? "quit" : "")
+        end tell
         """
     }
 

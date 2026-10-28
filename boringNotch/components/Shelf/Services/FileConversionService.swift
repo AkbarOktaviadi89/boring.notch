@@ -323,14 +323,14 @@ final class FileConversionService: ObservableObject {
         let candidates = Conversions.documentApps(forExtension: ext)
         let installed = candidates.filter { NSWorkspace.shared.urlForApplication(withBundleIdentifier: $0.rawValue) != nil }
 
-        var appError: Error?
+        var failures: [String] = []
         for app in installed {
             status = "Converting with \(app.name)…"
             do {
                 try await convertWithApp(app, input: input, output: output)
                 return
             } catch {
-                appError = error
+                failures.append(error.localizedDescription)
             }
         }
         if Conversions.canConvertNatively(extension: ext) {
@@ -338,7 +338,9 @@ final class FileConversionService: ObservableObject {
             try Self.convertNatively(input, to: output)
             return
         }
-        throw appError ?? ConversionError.needsApp(input.lastPathComponent, candidates.map(\.name))
+        guard !failures.isEmpty else { throw ConversionError.needsApp(input.lastPathComponent, candidates.map(\.name)) }
+        // Every app that was tried, not just the last one
+        throw ConversionError.exportFailed(input.lastPathComponent, "\n\n" + failures.joined(separator: "\n\n"))
     }
 
     /// The app's own sandbox can't reach the user's file, so the file is handed over in a folder the app shares with others
@@ -355,16 +357,41 @@ final class FileConversionService: ObservableObject {
         let handedOut = workFolder.appendingPathComponent(input.deletingPathExtension().lastPathComponent + ".pdf")
         try FileManager.default.copyItem(at: input, to: handedIn)
 
+        let wasRunning = !NSRunningApplication.runningApplications(withBundleIdentifier: app.rawValue).isEmpty
         do {
             try await AppleScriptHelper.executeVoid(Conversions.exportScript(app: app, input: handedIn.path, output: handedOut.path))
         } catch {
+            try? await AppleScriptHelper.executeVoid(Conversions.closeScript(app: app, quit: !wasRunning))
             let message = (error as NSError).userInfo[NSAppleScript.errorMessage] as? String ?? error.localizedDescription
             throw ConversionError.appFailed(app.name, message)
         }
-        guard FileManager.default.fileExists(atPath: handedOut.path) else {
-            throw ConversionError.appFailed(app.name, "no PDF came out")
+        // PowerPoint in particular finishes writing after the save command returns: wait for the file to settle
+        let pdf = await Self.waitForFinishedFile(in: workFolder, expected: handedOut, timeout: .seconds(90))
+        try? await AppleScriptHelper.executeVoid(Conversions.closeScript(app: app, quit: !wasRunning))
+        guard let pdf else {
+            let found = (try? FileManager.default.contentsOfDirectory(atPath: workFolder.path)) ?? []
+            throw ConversionError.appFailed(app.name, "no PDF came out (folder had: \(found.joined(separator: ", ")))")
         }
-        try FileManager.default.moveItem(at: handedOut, to: output)
+        try FileManager.default.moveItem(at: pdf, to: output)
+    }
+
+    /// The expected PDF, or any PDF the app wrote under another name, once its size stops changing
+    private static func waitForFinishedFile(in folder: URL, expected: URL, timeout: Duration) async -> URL? {
+        let deadline = ContinuousClock.now + timeout
+        var lastSize = -1
+        while ContinuousClock.now < deadline {
+            let candidate = FileManager.default.fileExists(atPath: expected.path)
+                ? expected
+                : ((try? FileManager.default.contentsOfDirectory(at: folder, includingPropertiesForKeys: nil)) ?? [])
+                    .first { $0.pathExtension.lowercased() == "pdf" }
+            if let candidate {
+                let size = (try? candidate.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
+                if size > 0 && size == lastSize { return candidate }
+                lastSize = size
+            }
+            try? await Task.sleep(for: .milliseconds(500))
+        }
+        return nil
     }
 
     /// Lays the text out on A4 pages and prints them to a PDF without showing a print dialog

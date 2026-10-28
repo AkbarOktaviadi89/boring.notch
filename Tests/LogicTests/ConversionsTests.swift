@@ -64,10 +64,15 @@ func runConversionsTests() {
     check("quoted escapes", Conversions.quoted("/a/\"x\" \\y.docx"), "\"/a/\\\"x\\\" \\\\y.docx\"")
     let word = Conversions.exportScript(app: .word, input: "/in/a.docx", output: "/out/a.pdf")
     contains("script word app", word, "tell application id \"com.microsoft.Word\"")
-    contains("script word saves pdf", word, "save as theDoc file name (POSIX file \"/out/a.pdf\") as string file format format PDF")
-    contains("script quits if launched", word, "if not wasRunning then quit saving no")
+    contains("script word opens", word, "open POSIX file \"/in/a.docx\"")
+    contains("script word saves pdf", word, "save as active document file name (POSIX file \"/out/a.pdf\") as string file format format PDF")
+    check("script export leaves the document open", String(word.contains("close")), "false")
     contains("script pages exports", Conversions.exportScript(app: .pages, input: "/in/a.pages", output: "/out/a.pdf"),
              "export theDoc to POSIX file \"/out/a.pdf\" as PDF")
     contains("script excel", Conversions.exportScript(app: .excel, input: "/i.xlsx", output: "/o.pdf"), "file format PDF file format")
-    contains("script powerpoint", Conversions.exportScript(app: .powerPoint, input: "/i.pptx", output: "/o.pdf"), "as save as PDF")
+    contains("script powerpoint", Conversions.exportScript(app: .powerPoint, input: "/i.pptx", output: "/o.pdf"),
+             "save active presentation in (POSIX file \"/o.pdf\") as string as save as PDF")
+    contains("close powerpoint", Conversions.closeScript(app: .powerPoint, quit: false), "close active presentation")
+    check("close keeps running app", String(Conversions.closeScript(app: .word, quit: false).contains("quit")), "false")
+    contains("close quits launched app", Conversions.closeScript(app: .keynote, quit: true), "quit")
 }
