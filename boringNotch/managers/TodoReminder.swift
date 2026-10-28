@@ -32,6 +32,8 @@ final class TodoReminder: ObservableObject {
         let timer = Timer(timeInterval: 30, repeats: true) { [weak self] _ in
             Task { @MainActor in self?.check() }
         }
+        // Lets macOS bundle this wake-up with others
+        timer.tolerance = 10
         RunLoop.main.add(timer, forMode: .common)
         self.timer = timer
         // Timers don't fire while the Mac sleeps; check as soon as it wakes up

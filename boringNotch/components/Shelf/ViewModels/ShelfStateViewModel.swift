@@ -12,7 +12,11 @@ final class ShelfStateViewModel: ObservableObject {
     static let shared = ShelfStateViewModel()
 
     @Published private(set) var items: [ShelfItem] = [] {
-        didSet { ShelfPersistenceService.shared.save(items) }
+        didSet {
+            ShelfPersistenceService.shared.save(items)
+            // Keeps the cache to the items on the Shelf
+            ShelfItem.clearDisplayNameCache()
+        }
     }
 
     @Published var isLoading: Bool = false

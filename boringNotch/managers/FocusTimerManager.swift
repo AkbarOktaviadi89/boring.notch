@@ -203,6 +203,7 @@ final class FocusTimerManager: ObservableObject {
                 self?.tick()
             }
         }
+        timer.tolerance = 0.1
         // .common keeps the timer firing while menus or the settings window are being interacted with
         RunLoop.main.add(timer, forMode: .common)
         self.timer = timer

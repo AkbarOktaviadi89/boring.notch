@@ -16,7 +16,8 @@ struct MeetingLiveActivity: View {
     static let sideWidth: CGFloat = 104
 
     var body: some View {
-        TimelineView(.periodic(from: .now, by: 1)) { context in
+        // Meetings start on the minute, so the minute boundaries are exactly when the text changes
+        TimelineView(.everyMinute) { context in
             let started = meeting.start <= context.date
             HStack {
                 HStack(spacing: 5) {

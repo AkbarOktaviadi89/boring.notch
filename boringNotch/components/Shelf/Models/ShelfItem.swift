@@ -59,7 +59,25 @@ struct ShelfItem: Identifiable, Codable, Equatable, Sendable {
         self.isTemporary = isTemporary
     }
     
+    /// Resolving a bookmark asks another process and may read the file, and views ask for the name on every render.
+    /// Keyed by bookmark data: a rename or a refreshed bookmark brings new data, so a stale name is never returned.
+    private static var displayNameCache: [Data: String] = [:]
+
+    static func clearDisplayNameCache() {
+        displayNameCache.removeAll()
+    }
+
     var displayName: String {
+        if case .file(let bookmarkData) = kind {
+            if let cached = Self.displayNameCache[bookmarkData] { return cached }
+            let name = uncachedDisplayName
+            if !name.isEmpty { Self.displayNameCache[bookmarkData] = name }
+            return name
+        }
+        return uncachedDisplayName
+    }
+
+    private var uncachedDisplayName: String {
         switch kind {
         case .file(let bookmarkData):
             let bookmark = Bookmark(data: bookmarkData)

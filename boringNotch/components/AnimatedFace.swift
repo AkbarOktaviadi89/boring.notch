@@ -40,20 +40,23 @@ struct MinimalFaceFeatures: View {
             }
         }
         .frame(width: self.width, height: self.height) // Maximum size of face
-        .onAppear {
-            startBlinking()
+        // Tied to the view: it stops when the face goes away. A repeating Timer started in onAppear
+        // was never invalidated, so every time the face reappeared another one piled up.
+        .task {
+            await blink()
         }
     }
-    
-    func startBlinking() {
-        Timer.scheduledTimer(withTimeInterval: 3, repeats: true) { _ in
+
+    func blink() async {
+        while !Task.isCancelled {
+            try? await Task.sleep(for: .seconds(3))
+            guard !Task.isCancelled else { return }
             withAnimation(.spring(duration: 0.2)) {
                 isBlinking = true
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                withAnimation(.spring(duration: 0.2)) {
-                    isBlinking = false
-                }
+            try? await Task.sleep(for: .milliseconds(100))
+            withAnimation(.spring(duration: 0.2)) {
+                isBlinking = false
             }
         }
     }

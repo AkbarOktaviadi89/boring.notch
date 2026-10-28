@@ -36,10 +36,12 @@ final class MeetingWatcher: ObservableObject {
 
     func start() {
         guard timer == nil else { return }
-        // Calendars change rarely; the countdown text ticks on its own in the view
-        let timer = Timer(timeInterval: 20, repeats: true) { [weak self] _ in
+        // Calendar edits arrive through EKEventStoreChanged; this only notices time passing.
+        // Meetings start on the minute, so once a minute is enough. The countdown ticks in the view.
+        let timer = Timer(timeInterval: 60, repeats: true) { [weak self] _ in
             Task { @MainActor in await self?.refresh() }
         }
+        timer.tolerance = 10
         RunLoop.main.add(timer, forMode: .common)
         self.timer = timer
         NotificationCenter.default.addObserver(forName: .EKEventStoreChanged, object: nil, queue: .main) { [weak self] _ in

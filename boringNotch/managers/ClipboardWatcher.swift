@@ -38,15 +38,36 @@ final class ClipboardWatcher: ObservableObject {
 
     private init() {}
 
+    private var settingsTask: Task<Void, Never>?
+
+    /// Polls only while suggestions are on; turning them off in Settings stops the timer
     func start() {
-        guard timer == nil else { return }
-        let timer = Timer(timeInterval: 1, repeats: true) { [weak self] _ in
-            Task { @MainActor in
-                self?.poll()
+        guard settingsTask == nil else { return }
+        settingsTask = Task { [weak self] in
+            for await (suggestions, devTools) in Defaults.updates(.clipboardSuggestions, .devToolsEnabled) {
+                self?.setPolling(suggestions && devTools)
             }
         }
-        RunLoop.main.add(timer, forMode: .common)
-        self.timer = timer
+    }
+
+    private func setPolling(_ on: Bool) {
+        guard on != (timer != nil) else { return }
+        if on {
+            // Changes made while off don't count as new
+            lastChangeCount = NSPasteboard.general.changeCount
+            let timer = Timer(timeInterval: 1, repeats: true) { [weak self] _ in
+                Task { @MainActor in
+                    self?.poll()
+                }
+            }
+            timer.tolerance = 0.3
+            RunLoop.main.add(timer, forMode: .common)
+            self.timer = timer
+        } else {
+            timer?.invalidate()
+            timer = nil
+            dismiss()
+        }
     }
 
     /// Call right after the app itself writes to the clipboard, so its own results aren't offered back
