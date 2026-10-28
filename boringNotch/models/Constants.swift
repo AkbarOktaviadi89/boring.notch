@@ -217,6 +217,7 @@ extension Defaults.Keys {
     static let devServersEnabled = Key<Bool>("devServersEnabled", default: true)
     static let devServersShowSystem = Key<Bool>("devServersShowSystem", default: false)
     static let monitorSection = Key<MonitorSection>("monitorSection", default: .system)
+    static let monitorAppSort = Key<AppUsageSort>("monitorAppSort", default: .cpu)
 
     // MARK: Calendar
     /// The closed notch counts down to the next meeting this many minutes ahead; 0 turns it off

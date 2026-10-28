@@ -295,6 +295,37 @@ final class XPCHelperClient: NSObject {
         }
     }
 
+    nonisolated func appUsageReport() async -> String? {
+        do {
+            let service = await MainActor.run {
+                ensureRemoteService()
+            }
+            let result: String? = try await service.withContinuation { service, continuation in
+                service.appUsageReport { report in
+                    continuation.resume(returning: report)
+                }
+            }
+            return result
+        } catch {
+            return nil
+        }
+    }
+
+    nonisolated func forceQuitProcess(_ pid: Int32) async -> Bool {
+        do {
+            let service = await MainActor.run {
+                ensureRemoteService()
+            }
+            return try await service.withContinuation { service, continuation in
+                service.forceQuitProcess(pid) { success in
+                    continuation.resume(returning: success)
+                }
+            }
+        } catch {
+            return false
+        }
+    }
+
     nonisolated func terminateListeningProcess(_ pid: Int32, force: Bool) async -> Bool {
         do {
             let service = await MainActor.run {

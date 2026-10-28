@@ -3,6 +3,7 @@
 #   make test     run the logic tests (no Xcode test runner needed)
 #   make build    build the Release app
 #   make install  test, build, replace /Applications/Boring Notch.app and relaunch it
+#   make signing-setup  once: a local signing certificate, so permissions survive rebuilds
 
 DEVELOPER_DIR ?= /Applications/Xcode.app/Contents/Developer
 export DEVELOPER_DIR
@@ -26,7 +27,9 @@ LOGIC_SOURCES := \
 	boringNotch/helpers/Notes.swift \
 	boringNotch/helpers/QuickCapture.swift \
 	boringNotch/helpers/Meetings.swift \
-	boringNotch/helpers/Conversions.swift
+	boringNotch/helpers/Conversions.swift \
+	boringNotch/helpers/AppUsage.swift \
+	BoringNotchXPCHelper/ProcessGuard.swift
 TEST_SOURCES := $(wildcard Tests/LogicTests/*.swift)
 TEST_BINARY := build/tests/logic-tests
 
@@ -35,7 +38,7 @@ TEST_BINARY := build/tests/logic-tests
 # its Team ID can't match an ad-hoc signed app. The app sandbox stays on.
 SIGNING := CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM= ENABLE_HARDENED_RUNTIME=NO
 
-.PHONY: test build install
+.PHONY: test build install signing-setup
 
 test:
 	@mkdir -p build/tests
@@ -45,7 +48,13 @@ test:
 build:
 	xcodebuild build -project boringNotch.xcodeproj -scheme boringNotch -configuration Release \
 		-derivedDataPath $(DERIVED_DATA) $(SIGNING) -quiet
+	@# A stable identity, so macOS keeps Camera and Automation permissions across rebuilds
+	scripts/local-signing.sh sign "$(RELEASE_APP)"
 	codesign --verify --deep --strict "$(RELEASE_APP)"
+
+# Once per Mac: creates the self-signed certificate the build above signs with
+signing-setup:
+	scripts/local-signing.sh setup
 
 install: test build
 	@echo "Quitting Boring Notch..."

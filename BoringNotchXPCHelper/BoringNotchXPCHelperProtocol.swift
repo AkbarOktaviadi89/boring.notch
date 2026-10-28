@@ -26,6 +26,9 @@ import Foundation
     func terminateListeningProcess(_ pid: Int32, force: Bool, with reply: @escaping (Bool) -> Void)
     // System monitor: processes sorted by CPU use (the sandboxed app can't run ps on other processes)
     func topProcessesReport(with reply: @escaping (String?) -> Void)
+    // Apps monitor: every process with its CPU, memory and energy, then a force quit guarded by ProcessGuard
+    func appUsageReport(with reply: @escaping (String?) -> Void)
+    func forceQuitProcess(_ pid: Int32, with reply: @escaping (Bool) -> Void)
 }
 
 /*

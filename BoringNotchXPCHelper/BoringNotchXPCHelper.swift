@@ -176,6 +176,36 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         reply(Self.run("/bin/ps", ["-Aceo", "pid=,pcpu=,rss=,comm=", "-r"]))
     }
 
+    /// ps for CPU and memory with full executable paths (to group helpers under their app), then top's POWER
+    /// column, the Energy Impact Activity Monitor shows. top needs two samples a second apart for it.
+    @objc func appUsageReport(with reply: @escaping (String?) -> Void) {
+        guard let listing = Self.run("/bin/ps", ["-Axo", "pid=,ppid=,uid=,pcpu=,rss=,comm="]) else {
+            reply(nil)
+            return
+        }
+        // Some processes rewrite their name ("redis-server *:6379"); the real executable path groups and guards them right
+        let processes = listing.split(whereSeparator: \.isNewline).map { line -> String in
+            let fields = line.split(separator: " ", maxSplits: 5, omittingEmptySubsequences: true)
+            guard fields.count == 6, let pid = Int32(fields[0]), let path = Self.executablePath(of: pid) else { return String(line) }
+            return fields[0..<5].joined(separator: " ") + " " + path
+        }.joined(separator: "\n")
+        let energy = Self.run("/usr/bin/top", ["-l", "2", "-s", "1", "-o", "power", "-n", "300", "-stats", "pid,power"]) ?? ""
+        reply(processes + "\n" + ProcessGuard.reportSeparator + "\n" + energy)
+    }
+
+    /// Checked here again, not only in the app: the user's own processes outside macOS's system folders
+    @objc func forceQuitProcess(_ pid: Int32, with reply: @escaping (Bool) -> Void) {
+        guard pid > 1, pid != getpid(),
+              let uid = Self.ownerUID(of: pid),
+              let path = Self.executablePath(of: pid),
+              ProcessGuard.canForceQuit(path: path, uid: uid, currentUID: getuid())
+        else {
+            reply(false)
+            return
+        }
+        reply(kill(pid, SIGKILL) == 0)
+    }
+
     /// Runs a command and returns its standard output. lsof exits with 1 when nothing matches, which is not an error here.
     private static func run(_ path: String, _ arguments: [String]) -> String? {
         let process = Process()
