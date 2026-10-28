@@ -64,4 +64,16 @@ func runStudyStatsTests() {
     check("announce long break body", say(.focus, .longBreak, 15, done: 4).body, "Long break, 15 min. You finished 4 sessions — already running.")
     check("announce waits", say(.shortBreak, .focus, 25, done: 1, auto: false).body, "Focus, 25 min. Start it from the notch when you're ready.")
     contains("announce done body", say(.focus, nil, 0, done: 1).body, "Nice work")
+
+    // Focus per task
+    let titles = ["a": "Essay", "b": "Slides", "c": "Code review"]
+    func top(_ log: [String: Int], limit: Int = 3) -> String {
+        StudyStats.topTasks(log, titles: titles, limit: limit).map { "\($0.title)=\($0.seconds)" }.joined(separator: ",")
+    }
+    check("top tasks by time", top(["a": 600, "b": 3000, "c": 1500]), "Slides=3000,Code review=1500,Essay=600")
+    check("top tasks limit", top(["a": 600, "b": 3000, "c": 1500], limit: 2), "Slides=3000,Code review=1500")
+    check("top tasks skip deleted", top(["a": 600, "gone": 9000]), "Essay=600")
+    check("top tasks skip zero", top(["a": 0, "b": 60]), "Slides=60")
+    check("top tasks ties by title", top(["a": 60, "b": 60]), "Essay=60,Slides=60")
+    check("top tasks empty", top([:]), "")
 }

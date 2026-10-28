@@ -51,6 +51,8 @@ class BoringViewCoordinator: ObservableObject {
     static let shared = BoringViewCoordinator()
 
     @Published var currentView: NotchViews = .home
+    /// Set by the quick-capture shortcut: the open notch shows one input field instead of the current tab
+    @Published var isQuickCapturing: Bool = false
     @Published var helloAnimationRunning: Bool = false
     private var sneakPeekDispatch: DispatchWorkItem?
     private var expandingViewDispatch: DispatchWorkItem?

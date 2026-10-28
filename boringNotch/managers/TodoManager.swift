@@ -97,10 +97,20 @@ final class TodoManager: ObservableObject {
     func addDraft(in filter: TodoFilter) -> TodoItem? {
         let parsed = TodoSchedule.parseDue(draft, now: Date())
         guard !parsed.title.isEmpty else { return nil }
-        let item = TodoItem(title: parsed.title, dueDate: parsed.due ?? Self.defaultDue(for: filter))
-        items.append(item)
+        let item = add(title: parsed.title, due: parsed.due ?? Self.defaultDue(for: filter))
         draft = ""
         return item
+    }
+
+    @discardableResult
+    func add(title: String, due: Date?) -> TodoItem {
+        let item = TodoItem(title: title, dueDate: due)
+        items.append(item)
+        return item
+    }
+
+    func item(with id: TodoItem.ID) -> TodoItem? {
+        items.first { $0.id == id }
     }
 
     func toggle(_ id: TodoItem.ID) {

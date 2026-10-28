@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		FC0000000000000000000049 /* MeetingLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000048 /* MeetingLiveActivity.swift */; };
+		FC0000000000000000000047 /* QuickCaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000046 /* QuickCaptureView.swift */; };
+		FC0000000000000000000045 /* MeetingWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000044 /* MeetingWatcher.swift */; };
+		FC0000000000000000000043 /* Meetings.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000042 /* Meetings.swift */; };
+		FC0000000000000000000041 /* QuickCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000040 /* QuickCapture.swift */; };
 		FC000000000000000000003E /* NotesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC000000000000000000003D /* NotesView.swift */; };
 		FC000000000000000000003C /* NotesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC000000000000000000003B /* NotesManager.swift */; };
 		FC000000000000000000003A /* Notes.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000039 /* Notes.swift */; };
@@ -210,6 +215,11 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		FC0000000000000000000048 /* MeetingLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingLiveActivity.swift; sourceTree = "<group>"; };
+		FC0000000000000000000046 /* QuickCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickCaptureView.swift; sourceTree = "<group>"; };
+		FC0000000000000000000044 /* MeetingWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingWatcher.swift; sourceTree = "<group>"; };
+		FC0000000000000000000042 /* Meetings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Meetings.swift; sourceTree = "<group>"; };
+		FC0000000000000000000040 /* QuickCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickCapture.swift; sourceTree = "<group>"; };
 		FC000000000000000000003D /* NotesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotesView.swift; sourceTree = "<group>"; };
 		FC000000000000000000003B /* NotesManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotesManager.swift; sourceTree = "<group>"; };
 		FC0000000000000000000039 /* Notes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notes.swift; sourceTree = "<group>"; };
@@ -415,6 +425,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		FC000000000000000000004A /* QuickCapture */ = {
+			isa = PBXGroup;
+			children = (
+				FC0000000000000000000046 /* QuickCaptureView.swift */,
+			);
+			path = QuickCapture;
+			sourceTree = "<group>";
+		};
 		FC000000000000000000003F /* Notes */ = {
 			isa = PBXGroup;
 			children = (
@@ -562,6 +580,8 @@
 				14288DD62C6E015000B9F80C /* AudioPlayer.swift */,
 				FC000000000000000000000B /* DevTransforms.swift */,
 				FC0000000000000000000035 /* TodoSchedule.swift */,
+				FC0000000000000000000040 /* QuickCapture.swift */,
+				FC0000000000000000000042 /* Meetings.swift */,
 				FC0000000000000000000039 /* Notes.swift */,
 				FC0000000000000000000031 /* MonthGrid.swift */,
 				FC0000000000000000000029 /* Flashcards.swift */,
@@ -608,6 +628,7 @@
 				B186542F2C6F455E000B926A /* Notch */,
 				9A0887332C7AFF7E00C160EA /* Tabs */,
 				FC000000000000000000003F /* Notes */,
+				FC000000000000000000004A /* QuickCapture */,
 				FC000000000000000000001A /* DevServers */,
 				FC0000000000000000000011 /* DevTools */,
 				FC000000000000000000000A /* Todo */,
@@ -631,6 +652,7 @@
 				F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */,
 				112FB7342CCF16F70015238C /* NotchSpaceManager.swift */,
 				147163992C5D35FF0068B555 /* MusicManager.swift */,
+				FC0000000000000000000044 /* MeetingWatcher.swift */,
 				FC000000000000000000003B /* NotesManager.swift */,
 				FC0000000000000000000037 /* TodoReminder.swift */,
 				FC000000000000000000002B /* FlashcardManager.swift */,
@@ -660,6 +682,7 @@
 			isa = PBXGroup;
 			children = (
 				14C08BB82C8DE4B1000F8AA0 /* BoringCalendar.swift */,
+				FC0000000000000000000048 /* MeetingLiveActivity.swift */,
 				FC0000000000000000000033 /* MonthCalendarView.swift */,
 			);
 			path = Calendar;
@@ -1083,6 +1106,11 @@
 				FC000000000000000000003E /* NotesView.swift in Sources */,
 				FC000000000000000000003C /* NotesManager.swift in Sources */,
 				FC000000000000000000003A /* Notes.swift in Sources */,
+				FC0000000000000000000049 /* MeetingLiveActivity.swift in Sources */,
+				FC0000000000000000000047 /* QuickCaptureView.swift in Sources */,
+				FC0000000000000000000045 /* MeetingWatcher.swift in Sources */,
+				FC0000000000000000000043 /* Meetings.swift in Sources */,
+				FC0000000000000000000041 /* QuickCapture.swift in Sources */,
 				FC0000000000000000000038 /* TodoReminder.swift in Sources */,
 				FC0000000000000000000036 /* TodoSchedule.swift in Sources */,
 				FC0000000000000000000034 /* MonthCalendarView.swift in Sources */,

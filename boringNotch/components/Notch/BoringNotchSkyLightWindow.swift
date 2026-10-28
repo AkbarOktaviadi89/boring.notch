@@ -151,6 +151,13 @@ enum NotchKeyboardFocus {
         if let window { self.window = window }
     }
 
+    /// For a shortcut that opens a text field: takes the keyboard without waiting for a click.
+    /// The panel is non-activating, so the app the user was in stays frontmost.
+    static func takeKeyboard() {
+        guard isActive, let window else { return }
+        window.makeKey()
+    }
+
     /// Gives the keyboard back to the previous app but keeps the window allowed to take it again
     static func returnKeyboard() {
         guard let window, window.isKeyWindow else { return }

@@ -738,6 +738,7 @@ struct CalendarSettings: View {
     @Default(.hideCompletedReminders) var hideCompletedReminders
     @Default(.hideAllDayEvents) var hideAllDayEvents
     @Default(.autoScrollToNextEvent) var autoScrollToNextEvent
+    @Default(.meetingCountdownMinutes) var meetingCountdownMinutes
 
     var body: some View {
         Form {
@@ -755,6 +756,20 @@ struct CalendarSettings: View {
             }
             Defaults.Toggle(key: .showFullEventTitles) {
                 Text("Always show full event titles")
+            }
+            Section {
+                Picker("Count down to the next meeting", selection: $meetingCountdownMinutes) {
+                    Text("Off").tag(0)
+                    Text("5 min before").tag(5)
+                    Text("10 min before").tag(10)
+                    Text("15 min before").tag(15)
+                }
+            } header: {
+                Text("Meetings")
+            } footer: {
+                Text("The closed notch shows the meeting and the minutes left. Open the notch and the event has a Join button when it has a Zoom, Meet or Teams link.")
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
             }
             Section(header: Text("Calendars")) {
                 if calendarManager.calendarAuthorizationStatus != .fullAccess {
@@ -2090,6 +2105,14 @@ struct Shortcuts: View {
             }
             Section {
                 KeyboardShortcuts.Recorder("Toggle Notch Open:", name: .toggleNotchOpen)
+            }
+            Section {
+                KeyboardShortcuts.Recorder("Quick Capture:", name: .quickCapture)
+            } footer: {
+                Text("Opens a field for a quick task. A date word at the end sets the due date (\"beli kopi besok\"), and starting with n: saves a note instead.")
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
             }
             Section {
                 KeyboardShortcuts.Recorder("Open Dev Tools:", name: .openDevTools)

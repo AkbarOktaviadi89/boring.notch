@@ -26,6 +26,9 @@ struct ContentView: View {
     @ObservedObject var focusTimer = FocusTimerManager.shared
     @ObservedObject var clipboardWatcher = ClipboardWatcher.shared
     @ObservedObject var todoReminder = TodoReminder.shared
+    @ObservedObject var meetingWatcher = MeetingWatcher.shared
+    // The focus live activity shows the chosen task's title, which lives here
+    @ObservedObject var todoManager = TodoManager.shared
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
@@ -73,8 +76,13 @@ struct ContentView: View {
             chinWidth = 640
         } else if showFocusAnnouncement {
             chinWidth += (2 * FocusPhaseLiveActivity.sideWidth + 20)
-        } else if showTodoReminder || showClipboardSuggestion || showFocusLiveActivity {
+        } else if showMeetingCountdown {
+            chinWidth += (2 * MeetingLiveActivity.sideWidth + 20)
+        } else if showTodoReminder || showClipboardSuggestion {
             chinWidth += (2 * FocusLiveActivity.sideWidth(notchHeight: vm.effectiveClosedNotchHeight) + 20)
+        } else if showFocusLiveActivity {
+            let showsTask = FocusLiveActivity.showsTask(focusTimer)
+            chinWidth += (2 * FocusLiveActivity.sideWidth(notchHeight: vm.effectiveClosedNotchHeight, showsTask: showsTask) + 20)
         } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
             && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle)
             && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed
@@ -94,6 +102,12 @@ struct ContentView: View {
     private var showFocusAnnouncement: Bool {
         vm.notchState == .closed && !vm.hideOnClosed && !coordinator.expandingView.show
             && focusTimer.announcement != nil && focusTimerEnabled
+    }
+
+    /// After a phase change, before everything else: a meeting about to start is easy to forget
+    private var showMeetingCountdown: Bool {
+        vm.notchState == .closed && !vm.hideOnClosed && !coordinator.expandingView.show
+            && meetingWatcher.upcoming != nil
     }
 
     private var showTodoReminder: Bool {
@@ -194,11 +208,14 @@ struct ContentView: View {
                     }
                     .onChange(of: vm.notchState) { _, newState in
                         // Opening the notch while a clipboard suggestion shows opens it in Dev Tools
-                        if newState == .open {
-                            // A to-do reminder wins over a clipboard hint: it's the one the user was nudged about
-                            if !TodoReminder.shared.accept() {
+                        if newState == .open && !coordinator.isQuickCapturing {
+                            // Same order as on the closed notch: whatever the user was just shown is where it opens
+                            if !meetingWatcher.accept() && !TodoReminder.shared.accept() {
                                 clipboardWatcher.accept()
                             }
+                        }
+                        if newState == .closed {
+                            coordinator.isQuickCapturing = false
                         }
                         if newState == .closed && isHovering {
                             withAnimation {
@@ -330,6 +347,10 @@ struct ContentView: View {
                           FocusPhaseLiveActivity(announcement: announcement)
                               .frame(alignment: .center)
                               .transition(.opacity)
+                      } else if showMeetingCountdown, let meeting = meetingWatcher.upcoming {
+                          MeetingLiveActivity(meeting: meeting)
+                              .frame(alignment: .center)
+                              .transition(.opacity)
                       } else if showTodoReminder, let count = todoReminder.activeCount {
                           TodoReminderLiveActivity(count: count)
                               .frame(alignment: .center)
@@ -398,6 +419,9 @@ struct ContentView: View {
               .zIndex(2)
             if vm.notchState == .open {
                 VStack {
+                    if coordinator.isQuickCapturing {
+                        QuickCaptureView()
+                    } else {
                     switch coordinator.currentView {
                     case .home:
                         NotchHomeView(albumArtNamespace: albumArtNamespace)
@@ -413,6 +437,7 @@ struct ContentView: View {
                         DevToolsView()
                     case .devServers:
                         MonitorView()
+                    }
                     }
                 }
                 .transition(

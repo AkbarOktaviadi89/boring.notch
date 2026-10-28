@@ -77,6 +77,12 @@ struct PhaseAnnouncement: Equatable {
     }
 }
 
+struct TaskFocus: Equatable {
+    let id: String
+    let title: String
+    let seconds: Int
+}
+
 struct StudyDay: Equatable {
     let date: Date
     let seconds: Int
@@ -127,6 +133,17 @@ enum StudyStats {
             day = previous
         }
         return count
+    }
+
+    /// Most-focused tasks first. `log` is task id -> seconds; tasks missing from `titles` were deleted and are left out.
+    static func topTasks(_ log: [String: Int], titles: [String: String], limit: Int) -> [TaskFocus] {
+        log.compactMap { id, seconds in
+            guard seconds > 0, let title = titles[id] else { return nil }
+            return TaskFocus(id: id, title: title, seconds: seconds)
+        }
+        .sorted { $0.seconds != $1.seconds ? $0.seconds > $1.seconds : $0.title < $1.title }
+        .prefix(max(0, limit))
+        .map { $0 }
     }
 
     /// "1h 30m", "25m", "<1m", "0m"

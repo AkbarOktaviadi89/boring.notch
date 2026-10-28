@@ -438,8 +438,13 @@ struct EventListView: View {
                         } else {
                             Text(event.start, style: .time)
                                 .foregroundColor(.white)
-                            Text(event.end, style: .time)
-                                .foregroundColor(Color(white: 0.65))
+                            if event.eventStatus != .ended,
+                               let joinURL = MeetingLink.joinURL(url: event.url, location: event.location, notes: event.notes) {
+                                MeetingJoinButton(url: joinURL)
+                            } else {
+                                Text(event.end, style: .time)
+                                    .foregroundColor(Color(white: 0.65))
+                            }
                         }
                     }
                     .font(.caption)

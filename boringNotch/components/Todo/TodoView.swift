@@ -187,6 +187,17 @@ private struct TodoRow: View {
                     .opacity(item.isDone ? 0.5 : 1)
             }
 
+            if !item.isDone && Defaults[.focusTimerEnabled] {
+                Button(action: focusOnTask) {
+                    Image(systemName: "timer")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.gray)
+                }
+                .buttonStyle(PlainButtonStyle())
+                .opacity(isHovering ? 1 : 0)
+                .help("Focus on this task")
+            }
+
             Button {
                 withAnimation(.smooth) { TodoManager.shared.delete(item.id) }
             } label: {
@@ -210,6 +221,10 @@ private struct TodoRow: View {
             Button("Due tomorrow") { setDue(1) }
             Button("Due next week") { setDue(7) }
             Button("No due date") { setDue(nil) }
+            if !item.isDone && Defaults[.focusTimerEnabled] {
+                Divider()
+                Button("Focus on this", action: focusOnTask)
+            }
             Divider()
             Button("Delete") {
                 withAnimation(.smooth) { TodoManager.shared.delete(item.id) }
@@ -223,6 +238,13 @@ private struct TodoRow: View {
         case .today: return .effectiveAccent
         case .upcoming, .someday: return .gray
         }
+    }
+
+    /// Points the timer at this task and opens it, ready to start
+    private func focusOnTask() {
+        FocusTimerManager.shared.taskID = item.id
+        Defaults[.focusSection] = .timer
+        withAnimation(.smooth) { BoringViewCoordinator.shared.currentView = .focus }
     }
 
     private func setDue(_ days: Int?) {

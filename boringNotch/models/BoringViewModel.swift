@@ -130,19 +130,22 @@ class BoringViewModel: NSObject, ObservableObject {
         return max(0, menuBarHeight - currentHeight)
     }
 
+    /// The header's camera button: shows the mirror on Home from any tab, and turns it off when it's already showing
     func toggleCameraPreview() {
         if isRequestingAuthorization {
             return
         }
 
+        // Read fresh: the status starts out unknown and can change in System Settings while the app runs
+        webcamManager.refreshAuthorizationStatus()
+
         switch webcamManager.authorizationStatus {
         case .authorized:
-            if webcamManager.isSessionRunning {
+            if coordinator.currentView == .home && isCameraExpanded {
                 webcamManager.stopSession()
                 isCameraExpanded = false
-            } else if webcamManager.cameraAvailable {
-                webcamManager.startSession()
-                isCameraExpanded = true
+            } else {
+                showCamera()
             }
 
         case .denied, .restricted:
@@ -168,16 +171,26 @@ class BoringViewModel: NSObject, ObservableObject {
 
         case .notDetermined:
             isRequestingAuthorization = true
-            webcamManager.checkAndRequestVideoAuthorization()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                self.isRequestingAuthorization = false
+            // Once access is granted, go straight to the camera instead of needing a second click
+            webcamManager.checkAndRequestVideoAuthorization { [weak self] granted in
+                self?.isRequestingAuthorization = false
+                if granted { self?.showCamera() }
             }
 
         default:
             break
         }
     }
-    
+
+    /// Switches to Home with the mirror expanded. CameraPreviewView starts the session when it appears.
+    private func showCamera() {
+        webcamManager.checkCameraAvailability()
+        withAnimation(.smooth) {
+            coordinator.currentView = .home
+            isCameraExpanded = true
+        }
+    }
+
     func isMouseHovering(position: NSPoint = NSEvent.mouseLocation) -> Bool {
         let screenFrame = getScreenFrame(screenUUID)
         if let frame = screenFrame {

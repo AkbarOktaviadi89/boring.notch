@@ -41,6 +41,12 @@ final class FocusTimerManager: ObservableObject {
     @Published private(set) var studyLog: [String: Int] = Defaults[.studySecondsByDay]
     /// Set for a few seconds after a phase ends, so the closed notch can say what starts next
     @Published private(set) var announcement: PhaseAnnouncement?
+    /// The to-do being worked on. Focus time goes to it as well as to the day.
+    @Published var taskID: TodoItem.ID? = Defaults[.focusTaskID] {
+        didSet { Defaults[.focusTaskID] = taskID }
+    }
+    /// To-do id -> focused seconds, for the Stats section
+    @Published private(set) var taskLog: [String: Int] = Defaults[.focusSecondsByTask]
 
     private var endDate: Date?
     private var timer: Timer?
@@ -57,6 +63,19 @@ final class FocusTimerManager: ObservableObject {
     }
 
     // MARK: - Derived state
+
+    /// The chosen to-do, while it still exists and is open
+    var task: TodoItem? {
+        guard let item = taskID.flatMap(TodoManager.shared.item(with:)), !item.isDone else { return nil }
+        return item
+    }
+
+    /// Ticks the chosen to-do off once the work is done, and stops pointing the timer at it
+    func completeTask() {
+        guard let task else { return }
+        TodoManager.shared.toggle(task.id)
+        taskID = nil
+    }
 
     var isActive: Bool {
         state == .running || state == .paused
@@ -317,6 +336,14 @@ final class FocusTimerManager: ObservableObject {
         guard seconds > 0, seconds >= minimum else { return }
         studyLog = StudyStats.adding(seconds, on: Date(), to: Defaults[.studySecondsByDay])
         Defaults[.studySecondsByDay] = studyLog
+        if let task {
+            // Tasks deleted since are dropped, so the log only grows with tasks that still exist
+            let existing = Set(TodoManager.shared.items.map(\.id.uuidString))
+            var log = Defaults[.focusSecondsByTask].filter { existing.contains($0.key) }
+            log[task.id.uuidString, default: 0] += seconds
+            taskLog = log
+            Defaults[.focusSecondsByTask] = log
+        }
     }
 
     private func recordCompletedSession() {

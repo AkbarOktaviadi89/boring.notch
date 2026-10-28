@@ -43,6 +43,8 @@ struct FocusSectionPicker: View {
 
 struct FocusTimerView: View {
     @ObservedObject var focus = FocusTimerManager.shared
+    // The chosen task's title and done state live here
+    @ObservedObject var todo = TodoManager.shared
     @Default(.focusTimerDuration) var duration
     @Default(.pomodoroEnabled) var pomodoroEnabled
     @Default(.pomodoroSessionsBeforeLongBreak) var sessionsBeforeLongBreak
@@ -51,6 +53,7 @@ struct FocusTimerView: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 8) {
                 FocusSectionPicker()
+                FocusTaskPicker()
                 Spacer()
                 if pomodoroEnabled {
                     cycleDots
@@ -180,6 +183,21 @@ struct FocusTimerView: View {
             .disabled(focus.state == .idle && focus.phase == .focus && focus.completedInCycle == 0)
             .opacity(focus.state == .idle && focus.phase == .focus && focus.completedInCycle == 0 ? 0.4 : 1)
 
+            // Right after a focus session is the natural moment to tick the task off
+            if focus.task != nil && (focus.phase.isBreak || focus.state == .finished) {
+                Button {
+                    withAnimation(.smooth) { focus.completeTask() }
+                } label: {
+                    Label("Mark done", systemImage: "checkmark.circle")
+                        .font(.system(.callout, design: .rounded))
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Capsule().fill(Color.green.opacity(0.3)))
+                }
+                .buttonStyle(PlainButtonStyle())
+                .help("Tick the task off in To-do")
+            }
+
             if focus.phase.isBreak {
                 Button {
                     focus.skipBreak()
@@ -220,6 +238,63 @@ struct FocusTimerView: View {
     }
 }
 
+/// Which to-do the timer is working on, picked from the open tasks
+struct FocusTaskPicker: View {
+    @ObservedObject var focus = FocusTimerManager.shared
+    @ObservedObject var todo = TodoManager.shared
+
+    var body: some View {
+        let today = todo.items(in: .today).filter { !$0.isDone }
+        let later = todo.items(in: .all).filter { item in !item.isDone && !today.contains { $0.id == item.id } }
+
+        Menu {
+            if today.isEmpty && later.isEmpty {
+                Text("No open tasks in To-do")
+            }
+            if !today.isEmpty {
+                Section("Today") {
+                    ForEach(today) { item in taskButton(item) }
+                }
+            }
+            if !later.isEmpty {
+                Section("Later") {
+                    ForEach(later) { item in taskButton(item) }
+                }
+            }
+            if focus.task != nil {
+                Divider()
+                Button("No task") { focus.taskID = nil }
+            }
+        } label: {
+            HStack(spacing: 4) {
+                Image(systemName: focus.task == nil ? "scope" : "target")
+                Text(focus.task?.title ?? "Pick a task")
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+            }
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .font(.caption)
+        .foregroundStyle(focus.task == nil ? .gray : .white)
+        .frame(maxWidth: 170, alignment: .leading)
+        .fixedSize(horizontal: focus.task == nil, vertical: false)
+        .help("Focus time is also counted for the chosen task")
+    }
+
+    private func taskButton(_ item: TodoItem) -> some View {
+        Button {
+            focus.taskID = item.id
+        } label: {
+            if item.id == focus.taskID {
+                Label(item.title, systemImage: "checkmark")
+            } else {
+                Text(item.title)
+            }
+        }
+    }
+}
+
 struct FocusProgressRing: View {
     let progress: Double
     let state: FocusTimerManager.State
@@ -255,26 +330,48 @@ struct FocusProgressRing: View {
 struct FocusLiveActivity: View {
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var focus = FocusTimerManager.shared
+    @ObservedObject var todo = TodoManager.shared
 
-    static func sideWidth(notchHeight: CGFloat) -> CGFloat {
-        max(notchHeight - 12, 40)
+    /// Wide enough for a short task title next to the ring
+    static let taskSideWidth: CGFloat = 104
+
+    static func sideWidth(notchHeight: CGFloat, showsTask: Bool = false) -> CGFloat {
+        showsTask ? taskSideWidth : max(notchHeight - 12, 40)
+    }
+
+    /// The task name only shows while focusing; a break isn't time spent on it
+    @MainActor
+    static func showsTask(_ focus: FocusTimerManager) -> Bool {
+        focus.task != nil && focus.phase == .focus && focus.state != .finished
     }
 
     var body: some View {
         let iconSize = max(0, vm.effectiveClosedNotchHeight - 14)
-        let sideWidth = Self.sideWidth(notchHeight: vm.effectiveClosedNotchHeight)
+        let showsTask = Self.showsTask(focus)
+        let sideWidth = Self.sideWidth(notchHeight: vm.effectiveClosedNotchHeight, showsTask: showsTask)
 
         HStack {
-            Group {
-                if focus.state == .finished {
-                    Image(systemName: "checkmark.circle.fill")
-                        .resizable()
-                        .foregroundStyle(.green)
-                } else {
-                    FocusProgressRing(progress: focus.progress, state: focus.state, lineWidth: 3, isBreak: focus.phase.isBreak)
+            HStack(spacing: 5) {
+                Group {
+                    if focus.state == .finished {
+                        Image(systemName: "checkmark.circle.fill")
+                            .resizable()
+                            .foregroundStyle(.green)
+                    } else {
+                        FocusProgressRing(progress: focus.progress, state: focus.state, lineWidth: 3, isBreak: focus.phase.isBreak)
+                    }
+                }
+                .frame(width: iconSize, height: iconSize)
+
+                if showsTask, let task = focus.task {
+                    Text(task.title)
+                        .font(.system(size: 11, weight: .medium, design: .rounded))
+                        .foregroundStyle(.white.opacity(0.85))
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
-            .frame(width: iconSize, height: iconSize)
             .frame(width: sideWidth)
 
             Rectangle()

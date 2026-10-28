@@ -187,6 +187,10 @@ extension Defaults.Keys {
     static let pomodoroLongBreak = Key<Int>("pomodoroLongBreak", default: 15)
     static let pomodoroSessionsBeforeLongBreak = Key<Int>("pomodoroSessionsBeforeLongBreak", default: 4)
     static let studySecondsByDay = Key<[String: Int]>("studySecondsByDay", default: [:])
+    /// The to-do item the timer is working on
+    static let focusTaskID = Key<UUID?>("focusTaskID", default: nil)
+    /// To-do id -> focused seconds
+    static let focusSecondsByTask = Key<[String: Int]>("focusSecondsByTask", default: [:])
     static let flashcards = Key<[Flashcard]>("flashcards", default: [])
 
     // MARK: To-do
@@ -215,6 +219,8 @@ extension Defaults.Keys {
     static let monitorSection = Key<MonitorSection>("monitorSection", default: .system)
 
     // MARK: Calendar
+    /// The closed notch counts down to the next meeting this many minutes ahead; 0 turns it off
+    static let meetingCountdownMinutes = Key<Int>("meetingCountdownMinutes", default: 10)
     /// Shows the whole month across the home tab instead of the day wheel
     static let calendarMonthView = Key<Bool>("calendarMonthView", default: false)
     static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)

@@ -443,17 +443,32 @@ struct NotchHomeView: View {
     @ViewBuilder
     private var mainContent: some View {
         if Defaults[.showCalendar] && calendarMonthView {
-            // The month needs the full width, so it takes the place of the player and the camera
-            MonthCalendarView()
-                .onHover { isHovering in
-                    vm.isHoveringCalendar = isHovering
+            // The month needs most of the width, so it takes the place of the player; the camera stays beside it
+            HStack(alignment: .top, spacing: 10) {
+                MonthCalendarView()
+                    .onHover { isHovering in
+                        vm.isHoveringCalendar = isHovering
+                    }
+                    .environmentObject(vm)
+                    .transition(.opacity)
+
+                if shouldShowCamera {
+                    camera
+                        .frame(width: 120, height: 120)
                 }
-                .environmentObject(vm)
-                .transition(.opacity)
-                .blur(radius: vm.notchState == .closed ? 30 : 0)
+            }
+            .blur(radius: vm.notchState == .closed ? 30 : 0)
         } else {
             playerAndCalendar
         }
+    }
+
+    private var camera: some View {
+        CameraPreviewView(webcamManager: webcamManager)
+            .scaledToFit()
+            .opacity(vm.notchState == .closed ? 0 : 1)
+            .blur(radius: vm.notchState == .closed ? 20 : 0)
+            .animation(.interactiveSpring(response: 0.32, dampingFraction: 0.76, blendDuration: 0), value: shouldShowCamera)
     }
 
     private var playerAndCalendar: some View {
@@ -471,11 +486,7 @@ struct NotchHomeView: View {
             }
 
             if shouldShowCamera {
-                CameraPreviewView(webcamManager: webcamManager)
-                    .scaledToFit()
-                    .opacity(vm.notchState == .closed ? 0 : 1)
-                    .blur(radius: vm.notchState == .closed ? 20 : 0)
-                    .animation(.interactiveSpring(response: 0.32, dampingFraction: 0.76, blendDuration: 0), value: shouldShowCamera)
+                camera
             }
         }
         .transition(.asymmetric(insertion: .opacity.combined(with: .move(edge: .top)), removal: .opacity))

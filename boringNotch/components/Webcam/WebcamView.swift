@@ -47,6 +47,12 @@ struct CameraPreviewView: View {
             .onTapGesture {
                 handleCameraTap()
             }
+            .onAppear {
+                // Turned on from the header, or the notch reopened while the mirror was on: show the live picture
+                if vm.isCameraExpanded && webcamManager.authorizationStatus == .authorized && !webcamManager.isSessionRunning {
+                    webcamManager.startSession()
+                }
+            }
             .onDisappear {
                 webcamManager.stopSession()
             }

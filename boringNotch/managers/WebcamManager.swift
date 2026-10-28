@@ -64,6 +64,7 @@ class WebcamManager: NSObject, ObservableObject {
         super.init()
         NotificationCenter.default.addObserver(self, selector: #selector(deviceWasDisconnected), name: .AVCaptureDeviceWasDisconnected, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(deviceWasConnected), name: .AVCaptureDeviceWasConnected, object: nil)
+        authorizationStatus = AVCaptureDevice.authorizationStatus(for: .video)
         checkCameraAvailability()
     }
     
@@ -82,8 +83,14 @@ class WebcamManager: NSObject, ObservableObject {
 
     // MARK: - Camera Management
     
-    /// Checks current authorization status and requests access if needed
-    func checkAndRequestVideoAuthorization() {
+    /// Main thread only
+    func refreshAuthorizationStatus() {
+        authorizationStatus = AVCaptureDevice.authorizationStatus(for: .video)
+    }
+
+    /// Checks current authorization status and requests access if needed.
+    /// `completion` runs on the main thread with whether the camera may be used.
+    func checkAndRequestVideoAuthorization(completion: ((Bool) -> Void)? = nil) {
         let status = AVCaptureDevice.authorizationStatus(for: .video)
         DispatchQueue.main.async {
             self.authorizationStatus = status
@@ -92,23 +99,27 @@ class WebcamManager: NSObject, ObservableObject {
         switch status {
         case .authorized:
             checkCameraAvailability() // Check availability if authorized
+            DispatchQueue.main.async { completion?(true) }
         case .notDetermined:
-            requestVideoAccess()
+            requestVideoAccess(completion: completion)
         case .denied, .restricted:
             NSLog("Camera access denied or restricted")
+            DispatchQueue.main.async { completion?(false) }
         @unknown default:
             NSLog("Unknown authorization status")
+            DispatchQueue.main.async { completion?(false) }
         }
     }
     
     /// Requests access to the camera
-    private func requestVideoAccess() {
+    private func requestVideoAccess(completion: ((Bool) -> Void)?) {
         AVCaptureDevice.requestAccess(for: .video) { [weak self] granted in
             DispatchQueue.main.async {
                 self?.authorizationStatus = granted ? .authorized : .denied
                 if granted {
                     self?.checkCameraAvailability() // Check availability if access granted
                 }
+                completion?(granted)
             }
         }
     }

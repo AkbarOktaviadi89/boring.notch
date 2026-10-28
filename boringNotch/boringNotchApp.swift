@@ -237,30 +237,56 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func toggleNotch(on view: NotchViews, enabled: Bool, prepare: (() -> Void)? = nil) {
         guard enabled else { return }
 
-        var viewModel = vm
-        if Defaults[.showOnAllDisplays] {
-            let mouseLocation = NSEvent.mouseLocation
-            if let screen = NSScreen.screens.first(where: { $0.frame.contains(mouseLocation) }),
-               let uuid = screen.displayUUID, let screenViewModel = viewModels[uuid] {
-                viewModel = screenViewModel
-            }
-        }
+        let viewModel = viewModelUnderMouse()
 
         // Unlike toggleNotchOpen, don't close after a few seconds: the user opened the tab to use it
         closeNotchTask?.cancel()
         closeNotchTask = nil
 
-        if viewModel.notchState == .open && coordinator.currentView == view {
+        if viewModel.notchState == .open && coordinator.currentView == view && !coordinator.isQuickCapturing {
             viewModel.close()
             return
         }
         prepare?()
         withAnimation(.smooth) {
+            coordinator.isQuickCapturing = false
             coordinator.currentView = view
         }
         if viewModel.notchState == .closed {
             viewModel.open()
         }
+    }
+
+    /// Opens the notch with just the capture field; pressing the shortcut again closes it
+    @MainActor
+    private func toggleQuickCapture() {
+        let viewModel = viewModelUnderMouse()
+        closeNotchTask?.cancel()
+        closeNotchTask = nil
+
+        if viewModel.notchState == .open && coordinator.isQuickCapturing {
+            viewModel.close()
+            return
+        }
+        withAnimation(.smooth) {
+            coordinator.isQuickCapturing = true
+        }
+        if viewModel.notchState == .closed {
+            viewModel.open()
+        }
+    }
+
+    /// With the notch on every display, the one under the mouse
+    @MainActor
+    private func viewModelUnderMouse() -> BoringViewModel {
+        if Defaults[.showOnAllDisplays] {
+            let mouseLocation = NSEvent.mouseLocation
+            if let screen = NSScreen.screens.first(where: { $0.frame.contains(mouseLocation) }),
+               let uuid = screen.displayUUID, let screenViewModel = viewModels[uuid] {
+                return screenViewModel
+            }
+        }
+        return vm
     }
 
     private func createBoringNotchWindow(for screen: NSScreen, with viewModel: BoringViewModel) -> NSWindow {
@@ -399,12 +425,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         ClipboardWatcher.shared.start()
         TodoReminder.shared.start()
+        MeetingWatcher.shared.start()
 
         KeyboardShortcuts.onKeyDown(for: .openDevTools) { [weak self] in
             Task { @MainActor in
                 self?.toggleNotch(on: .devTools, enabled: Defaults[.devToolsEnabled]) {
                     DevToolsManager.shared.loadFromClipboard()
                 }
+            }
+        }
+
+        KeyboardShortcuts.onKeyDown(for: .quickCapture) { [weak self] in
+            Task { @MainActor in
+                self?.toggleQuickCapture()
             }
         }
 

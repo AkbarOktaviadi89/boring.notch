@@ -17,4 +17,6 @@ extension KeyboardShortcuts.Name {
     static let toggleNotchOpen = Self("toggleNotchOpen", default: .init(.i, modifiers: [.command, .shift]))
     // Opens Dev Tools with the clipboard loaded. ⌃⌥⌘ because ⌥⌘D already shows and hides the Dock.
     static let openDevTools = Self("openDevTools", default: .init(.d, modifiers: [.control, .option, .command]))
+    // ⌃⌥Space is taken by macOS for switching input sources, so capture follows the ⌃⌥⌘ family as well
+    static let quickCapture = Self("quickCapture", default: .init(.n, modifiers: [.control, .option, .command]))
 }

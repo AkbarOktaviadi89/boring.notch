@@ -10,6 +10,7 @@ import SwiftUI
 /// Focused time over the last 7 days, the weekly total and the current streak
 struct FocusStatsView: View {
     @ObservedObject var focus = FocusTimerManager.shared
+    @ObservedObject var todo = TodoManager.shared
 
     var body: some View {
         // Re-render around midnight so "today" moves on while the tab stays open
@@ -33,6 +34,38 @@ struct FocusStatsView: View {
                         summary("Streak", streak == 1 ? "1 day" : "\(streak) days")
                     }
                     .frame(width: 130, alignment: .leading)
+                    byTask
+                        .frame(width: 150, alignment: .leading)
+                }
+            }
+        }
+    }
+
+    /// Where the focus time went, for tasks picked in the timer
+    private var byTask: some View {
+        let titles = Dictionary(todo.items.map { ($0.id.uuidString, $0.title) }, uniquingKeysWith: { first, _ in first })
+        let top = StudyStats.topTasks(focus.taskLog, titles: titles, limit: 4)
+        return VStack(alignment: .leading, spacing: 3) {
+            Text("By task")
+                .font(.caption2)
+                .foregroundStyle(.gray)
+            if top.isEmpty {
+                Text("Pick a task in Timer to see where your focus goes")
+                    .font(.caption)
+                    .foregroundStyle(.gray)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else {
+                ForEach(top, id: \.id) { entry in
+                    HStack(spacing: 6) {
+                        Text(entry.title)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                        Spacer(minLength: 4)
+                        Text(StudyStats.formatDuration(entry.seconds))
+                            .monospacedDigit()
+                            .foregroundStyle(.gray)
+                    }
+                    .font(.caption)
                 }
             }
         }

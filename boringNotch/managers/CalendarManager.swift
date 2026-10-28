@@ -193,6 +193,11 @@ class CalendarManager: ObservableObject {
         self.events = eventsResult
     }
     
+    /// Events overlapping the given window in the selected calendars, whatever day the calendar view shows
+    func events(from start: Date, to end: Date) async -> [EventModel] {
+        await calendarService.events(from: start, to: end, calendars: selectedCalendars.map { $0.id })
+    }
+
     /// Days ("yyyy-MM-dd") in the month view's six weeks that have at least one event
     @Published var monthEventDays: Set<String> = []
 
