@@ -358,8 +358,16 @@ final class FileConversionService: ObservableObject {
         try FileManager.default.copyItem(at: input, to: handedIn)
 
         let wasRunning = !NSRunningApplication.runningApplications(withBundleIdentifier: app.rawValue).isEmpty
+        if !wasRunning { await Self.launchInBackground(app) }
+        let script = Conversions.exportScript(app: app, input: handedIn.path, output: handedOut.path)
         do {
-            try await AppleScriptHelper.executeVoid(Conversions.exportScript(app: app, input: handedIn.path, output: handedOut.path))
+            do {
+                try await AppleScriptHelper.executeVoid(script)
+            } catch let error as NSError where Self.lostConnectionCodes.contains(error.userInfo[NSAppleScript.errorNumber] as? Int ?? 0) {
+                // The app was still starting up, or quit in between: give it a moment and try once more
+                await Self.launchInBackground(app)
+                try await AppleScriptHelper.executeVoid(script)
+            }
         } catch {
             try? await AppleScriptHelper.executeVoid(Conversions.closeScript(app: app, quit: !wasRunning))
             let message = (error as NSError).userInfo[NSAppleScript.errorMessage] as? String ?? error.localizedDescription
@@ -373,6 +381,28 @@ final class FileConversionService: ObservableObject {
             throw ConversionError.appFailed(app.name, "no PDF came out (folder had: \(found.joined(separator: ", ")))")
         }
         try FileManager.default.moveItem(at: pdf, to: output)
+    }
+
+    /// "Connection is invalid" and "application isn't running": the app wasn't ready to be talked to
+    private static let lostConnectionCodes: Set<Int> = [-609, -600]
+
+    /// Opens the app without bringing it forward and waits until it has finished launching.
+    /// Scripting an app that is still starting up can fail with "Connection is invalid".
+    private static func launchInBackground(_ app: DocumentApp) async {
+        guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: app.rawValue) else { return }
+        let configuration = NSWorkspace.OpenConfiguration()
+        configuration.activates = false
+        configuration.addsToRecentItems = false
+        _ = try? await NSWorkspace.shared.openApplication(at: url, configuration: configuration)
+        let deadline = ContinuousClock.now + .seconds(30)
+        while ContinuousClock.now < deadline {
+            if NSRunningApplication.runningApplications(withBundleIdentifier: app.rawValue).contains(where: \.isFinishedLaunching) {
+                break
+            }
+            try? await Task.sleep(for: .milliseconds(300))
+        }
+        // Finished launching isn't quite ready for Apple events yet
+        try? await Task.sleep(for: .seconds(1))
     }
 
     /// The expected PDF, or any PDF the app wrote under another name, once its size stops changing

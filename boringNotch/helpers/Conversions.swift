@@ -242,32 +242,35 @@ enum Conversions {
     /// HFS paths, so the script converts them. PowerPoint may still be writing the PDF when the command
     /// returns, so the document is closed separately, once the PDF is there (`closeScript`).
     static func exportScript(app: DocumentApp, input: String, output: String) -> String {
-        let inFile = "POSIX file \(quoted(input))"
-        let outPath = "(POSIX file \(quoted(output))) as string"
+        // Both paths are set up before talking to the app: inside a command, "(POSIX file …) as string"
+        // reads as the command's own "as" parameter, which PowerPoint then sees twice
         let body: String
         switch app {
         case .word:
             body = """
-                    open \(inFile)
-                    save as active document file name \(outPath) file format format PDF
+                    open inFile
+                    save as active document file name outPath file format format PDF
             """
         case .excel:
             body = """
-                    open \(inFile)
-                    save workbook as active workbook filename \(outPath) file format PDF file format
+                    open inFile
+                    save workbook as active workbook filename outPath file format PDF file format
             """
         case .powerPoint:
             body = """
-                    open \(inFile)
-                    save active presentation in \(outPath) as save as PDF
+                    open inFile
+                    save active presentation in outPath as save as PDF
             """
         case .pages, .numbers, .keynote:
             body = """
-                    set theDoc to open \(inFile)
-                    export theDoc to POSIX file \(quoted(output)) as PDF
+                    set theDoc to open inFile
+                    export theDoc to outFile as PDF
             """
         }
         return """
+        set inFile to POSIX file \(quoted(input))
+        set outFile to POSIX file \(quoted(output))
+        set outPath to outFile as string
         with timeout of 300 seconds
             tell application id "\(app.rawValue)"
         \(body)

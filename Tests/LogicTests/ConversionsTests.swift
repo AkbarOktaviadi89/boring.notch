@@ -64,14 +64,17 @@ func runConversionsTests() {
     check("quoted escapes", Conversions.quoted("/a/\"x\" \\y.docx"), "\"/a/\\\"x\\\" \\\\y.docx\"")
     let word = Conversions.exportScript(app: .word, input: "/in/a.docx", output: "/out/a.pdf")
     contains("script word app", word, "tell application id \"com.microsoft.Word\"")
-    contains("script word opens", word, "open POSIX file \"/in/a.docx\"")
-    contains("script word saves pdf", word, "save as active document file name (POSIX file \"/out/a.pdf\") as string file format format PDF")
+    contains("script sets input", word, "set inFile to POSIX file \"/in/a.docx\"")
+    contains("script sets output path", word, "set outPath to outFile as string")
+    contains("script word saves pdf", word, "save as active document file name outPath file format format PDF")
     check("script export leaves the document open", String(word.contains("close")), "false")
     contains("script pages exports", Conversions.exportScript(app: .pages, input: "/in/a.pages", output: "/out/a.pdf"),
-             "export theDoc to POSIX file \"/out/a.pdf\" as PDF")
+             "export theDoc to outFile as PDF")
     contains("script excel", Conversions.exportScript(app: .excel, input: "/i.xlsx", output: "/o.pdf"), "file format PDF file format")
-    contains("script powerpoint", Conversions.exportScript(app: .powerPoint, input: "/i.pptx", output: "/o.pdf"),
-             "save active presentation in (POSIX file \"/o.pdf\") as string as save as PDF")
+    let powerPoint = Conversions.exportScript(app: .powerPoint, input: "/i.pptx", output: "/o.pdf")
+    contains("script powerpoint", powerPoint, "save active presentation in outPath as save as PDF")
+    // "as string" inside the save command made PowerPoint see its "as" parameter twice
+    check("script powerpoint one as", String(powerPoint.components(separatedBy: "save active presentation")[1].components(separatedBy: "\n")[0].contains("as string")), "false")
     contains("close powerpoint", Conversions.closeScript(app: .powerPoint, quit: false), "close active presentation")
     check("close keeps running app", String(Conversions.closeScript(app: .word, quit: false).contains("quit")), "false")
     contains("close quits launched app", Conversions.closeScript(app: .keynote, quit: true), "quit")
