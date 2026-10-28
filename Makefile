@@ -25,7 +25,8 @@ LOGIC_SOURCES := \
 	boringNotch/helpers/TodoSchedule.swift \
 	boringNotch/helpers/Notes.swift \
 	boringNotch/helpers/QuickCapture.swift \
-	boringNotch/helpers/Meetings.swift
+	boringNotch/helpers/Meetings.swift \
+	boringNotch/helpers/Conversions.swift
 TEST_SOURCES := $(wildcard Tests/LogicTests/*.swift)
 TEST_BINARY := build/tests/logic-tests
 

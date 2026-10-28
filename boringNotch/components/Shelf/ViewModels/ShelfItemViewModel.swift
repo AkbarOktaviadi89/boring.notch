@@ -320,6 +320,26 @@ final class ShelfItemViewModel: ObservableObject {
         menu.addItem(NSMenuItem.separator())
         addMenuItem(title: "Share…")
         
+        // Every conversion that fits the selection, grouped by kind of file
+        let conversions = Conversions.actions(forExtensions: selectedFileURLs.filter { !isDirectory($0) }.map(\.pathExtension))
+        if !conversions.isEmpty {
+            menu.addItem(NSMenuItem.separator())
+            let convert = NSMenuItem(title: "Convert", action: nil, keyEquivalent: "")
+            let convertMenu = NSMenu()
+            var lastGroup = conversions[0].group
+            for action in conversions {
+                if action.group != lastGroup {
+                    convertMenu.addItem(NSMenuItem.separator())
+                    lastGroup = action.group
+                }
+                let entry = NSMenuItem(title: action.title, action: nil, keyEquivalent: "")
+                entry.representedObject = ConversionMenuChoice(action: action)
+                convertMenu.addItem(entry)
+            }
+            convert.submenu = convertMenu
+            menu.addItem(convert)
+        }
+
         // Add image processing options for image files grouped under "Image Actions"
         let imageURLs = selectedFileURLs.filter { ImageProcessingService.shared.isImageFile($0) }
         if !imageURLs.isEmpty {
@@ -414,6 +434,11 @@ final class ShelfItemViewModel: ObservableObject {
 
         @MainActor @objc func handle(_ sender: NSMenuItem) {
             let title = sender.title
+
+            if let choice = sender.representedObject as? ConversionMenuChoice {
+                runConversion(choice.action)
+                return
+            }
 
             if let marker = sender.representedObject as? String, marker == "__OTHER__" {
                 openWithPanel()
@@ -817,6 +842,32 @@ final class ShelfItemViewModel: ObservableObject {
             }
         }
         
+        /// Converts the selected files; the results land in Downloads and on the Shelf
+        @MainActor
+        private func runConversion(_ action: ConversionAction) {
+            let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
+            let urls = selected.compactMap { item -> URL? in
+                guard case .file = item.kind else { return nil }
+                return ShelfStateViewModel.shared.resolveAndUpdateBookmark(for: item)
+            }
+            guard !urls.isEmpty else { return }
+
+            Task {
+                do {
+                    let results = try await urls.accessSecurityScopedResources { accessible in
+                        try await FileConversionService.shared.run(action, on: accessible)
+                    }
+                    let items = results.compactMap { url -> ShelfItem? in
+                        guard let bookmark = try? Bookmark(url: url) else { return nil }
+                        return ShelfItem(kind: .file(bookmark: bookmark.data))
+                    }
+                    ShelfStateViewModel.shared.add(items)
+                } catch {
+                    showErrorAlert(title: "Conversion Failed", message: error.localizedDescription)
+                }
+            }
+        }
+
         @MainActor
         private func handleCreatePDF() {
             let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
@@ -1109,4 +1160,10 @@ fileprivate extension Sequence {
         }
         return result
     }
+}
+
+/// Marks a Convert menu entry; a class because NSMenuItem.representedObject holds objects
+private final class ConversionMenuChoice: NSObject {
+    let action: ConversionAction
+    init(action: ConversionAction) { self.action = action }
 }

@@ -16,6 +16,13 @@
 	<true/>
 	<key>com.apple.security.files.user-selected.read-write</key>
 	<true/>
+	<key>com.apple.security.files.downloads.read-write</key>
+	<true/>
+	<key>com.apple.security.temporary-exception.files.home-relative-path.read-write</key>
+	<array>
+		<string>/Library/Group Containers/UBF8T346G9.Office/Boring Notch/</string>
+		<string>/Library/Group Containers/74J34U3R6X.com.apple.iWork/Boring Notch/</string>
+	</array>
 	<key>com.apple.security.network.client</key>
 	<true/>
 	<key>com.apple.security.network.server</key>
@@ -24,6 +31,12 @@
 	<array>
 		<string>com.spotify.client</string>
 		<string>com.apple.Music</string>
+		<string>com.microsoft.Word</string>
+		<string>com.microsoft.Excel</string>
+		<string>com.microsoft.Powerpoint</string>
+		<string>com.apple.iWork.Pages</string>
+		<string>com.apple.iWork.Numbers</string>
+		<string>com.apple.iWork.Keynote</string>
 	</array>
 	<key>com.apple.security.temporary-exception.mach-lookup.global-name</key>
 	<array>

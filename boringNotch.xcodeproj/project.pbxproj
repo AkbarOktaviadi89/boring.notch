@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		FC000000000000000000004E /* FileConversionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC000000000000000000004D /* FileConversionService.swift */; };
+		FC000000000000000000004C /* Conversions.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC000000000000000000004B /* Conversions.swift */; };
 		FC0000000000000000000049 /* MeetingLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000048 /* MeetingLiveActivity.swift */; };
 		FC0000000000000000000047 /* QuickCaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000046 /* QuickCaptureView.swift */; };
 		FC0000000000000000000045 /* MeetingWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000044 /* MeetingWatcher.swift */; };
@@ -215,6 +217,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		FC000000000000000000004D /* FileConversionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileConversionService.swift; sourceTree = "<group>"; };
+		FC000000000000000000004B /* Conversions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Conversions.swift; sourceTree = "<group>"; };
 		FC0000000000000000000048 /* MeetingLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingLiveActivity.swift; sourceTree = "<group>"; };
 		FC0000000000000000000046 /* QuickCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickCaptureView.swift; sourceTree = "<group>"; };
 		FC0000000000000000000044 /* MeetingWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingWatcher.swift; sourceTree = "<group>"; };
@@ -495,6 +499,7 @@
 				1113ABCF2E80E6BB00EC13B2 /* ThumbnailService.swift */,
 				1113ABBA2E80E27000EC13B2 /* QuickLookService.swift */,
 				1113ABBC2E80E27000EC13B2 /* ShelfActionService.swift */,
+				FC000000000000000000004D /* FileConversionService.swift */,
 				1113ABBD2E80E27000EC13B2 /* ShelfDropService.swift */,
 				1113ABBE2E80E27000EC13B2 /* ShelfPersistenceService.swift */,
 			);
@@ -582,6 +587,7 @@
 				FC0000000000000000000035 /* TodoSchedule.swift */,
 				FC0000000000000000000040 /* QuickCapture.swift */,
 				FC0000000000000000000042 /* Meetings.swift */,
+				FC000000000000000000004B /* Conversions.swift */,
 				FC0000000000000000000039 /* Notes.swift */,
 				FC0000000000000000000031 /* MonthGrid.swift */,
 				FC0000000000000000000029 /* Flashcards.swift */,
@@ -1106,6 +1112,8 @@
 				FC000000000000000000003E /* NotesView.swift in Sources */,
 				FC000000000000000000003C /* NotesManager.swift in Sources */,
 				FC000000000000000000003A /* Notes.swift in Sources */,
+				FC000000000000000000004E /* FileConversionService.swift in Sources */,
+				FC000000000000000000004C /* Conversions.swift in Sources */,
 				FC0000000000000000000049 /* MeetingLiveActivity.swift in Sources */,
 				FC0000000000000000000047 /* QuickCaptureView.swift in Sources */,
 				FC0000000000000000000045 /* MeetingWatcher.swift in Sources */,
@@ -1423,7 +1431,7 @@
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSBackgroundOnly = NO;
 				INFOPLIST_KEY_LSUIElement = YES;
-				INFOPLIST_KEY_NSAppleEventsUsageDescription = "This app uses AppleEvents to control music";
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Boring Notch controls your music player, and asks Word, Excel, PowerPoint, Pages, Numbers or Keynote to save documents as PDF when you convert them from the Shelf.";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "This app uses the calendar to display your calendar events";
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app uses the camera to display a live camera view";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -1477,7 +1485,7 @@
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSBackgroundOnly = NO;
 				INFOPLIST_KEY_LSUIElement = YES;
-				INFOPLIST_KEY_NSAppleEventsUsageDescription = "This app uses AppleEvents to control music";
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Boring Notch controls your music player, and asks Word, Excel, PowerPoint, Pages, Numbers or Keynote to save documents as PDF when you convert them from the Shelf.";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "This app uses the calendar to display your calendar events";
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app uses the camera to display a live camera view";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";

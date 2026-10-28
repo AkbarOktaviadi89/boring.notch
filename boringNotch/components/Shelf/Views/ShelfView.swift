@@ -13,6 +13,7 @@ struct ShelfView: View {
     @StateObject var tvm = ShelfStateViewModel.shared
     @StateObject var selection = ShelfSelectionModel.shared
     @StateObject private var quickLookService = QuickLookService()
+    @ObservedObject private var conversions = FileConversionService.shared
     private let spacing: CGFloat = 8
 
     var body: some View {
@@ -61,7 +62,8 @@ struct ShelfView: View {
     var panel: some View {
         RoundedRectangle(cornerRadius: 16)
             .stroke(
-                vm.dragDetectorTargeting
+                // A drop anywhere on the open notch lands here too, see GeneralDropTargetDelegate
+                vm.dragDetectorTargeting || vm.generalDropTargeting
                     ? Color.accentColor.opacity(0.9)
                     : Color.white.opacity(0.1),
                 style: StrokeStyle(lineWidth: 3, lineCap: .round, dash: [10])
@@ -75,6 +77,25 @@ struct ShelfView: View {
             }
             .contentShape(Rectangle())
             .onTapGesture { selection.clear() }
+            .overlay(alignment: .bottomTrailing) {
+                if let status = conversions.status {
+                    HStack(spacing: 6) {
+                        ProgressView()
+                            .controlSize(.small)
+                        Text(status)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                    }
+                    .font(.caption)
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(Capsule().fill(Color.black.opacity(0.85)))
+                    .padding(8)
+                    .transition(.opacity)
+                }
+            }
+            .animation(.smooth, value: conversions.status)
     }
 
     var content: some View {

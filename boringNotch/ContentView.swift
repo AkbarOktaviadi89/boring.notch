@@ -11,6 +11,7 @@ import Combine
 import Defaults
 import KeyboardShortcuts
 import SwiftUI
+import UniformTypeIdentifiers
 import SwiftUIIntrospect
 
 @MainActor
@@ -450,7 +451,18 @@ struct ContentView: View {
                 .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
             }
         }
-        .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], delegate: GeneralDropTargetDelegate(isTargeted: $vm.generalDropTargeting))
+        .onDrop(of: GeneralDropTargetDelegate.types, delegate: GeneralDropTargetDelegate(
+            isTargeted: $vm.generalDropTargeting,
+            acceptsDrop: {
+                // Not while a Shelf item is being dragged out, so it doesn't land back on the Shelf
+                vm.notchState == .open && coordinator.currentView == .shelf && !coordinator.isQuickCapturing
+                    && Defaults[.boringShelf] && !ShelfSelectionModel.shared.isDragging
+            },
+            onDrop: { providers in
+                vm.dropEvent = true
+                ShelfStateViewModel.shared.load(providers)
+            }
+        ))
     }
 
     @ViewBuilder
@@ -720,8 +732,14 @@ struct FullScreenDropDelegate: DropDelegate {
 
 }
 
+/// Covers the whole notch. While the Shelf is showing, a drop anywhere on the open notch lands on the Shelf,
+/// not only inside its dashed panel.
 struct GeneralDropTargetDelegate: DropDelegate {
+    static let types: [UTType] = [.fileURL, .url, .utf8PlainText, .plainText, .data]
+
     @Binding var isTargeted: Bool
+    var acceptsDrop: () -> Bool = { false }
+    var onDrop: ([NSItemProvider]) -> Void = { _ in }
 
     func dropEntered(info: DropInfo) {
         isTargeted = true
@@ -732,11 +750,16 @@ struct GeneralDropTargetDelegate: DropDelegate {
     }
 
     func dropUpdated(info: DropInfo) -> DropProposal? {
-        return DropProposal(operation: .cancel)
+        DropProposal(operation: acceptsDrop() ? .copy : .cancel)
     }
 
     func performDrop(info: DropInfo) -> Bool {
-        return false
+        isTargeted = false
+        guard acceptsDrop() else { return false }
+        let providers = info.itemProviders(for: Self.types)
+        guard !providers.isEmpty else { return false }
+        onDrop(providers)
+        return true
     }
 }
 
