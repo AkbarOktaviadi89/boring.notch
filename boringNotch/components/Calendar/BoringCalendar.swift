@@ -256,6 +256,113 @@ struct CalendarView: View {
     }
 }
 
+/// The day's events under a one-line date header, for the card next to the music player.
+/// ‹ › step through days; the calendar button opens the whole month.
+struct AgendaCalendarView: View {
+    @EnvironmentObject var vm: BoringViewModel
+    @ObservedObject private var calendarManager = CalendarManager.shared
+    @State private var selectedDate = Date()
+
+    private var isToday: Bool { Calendar.current.isDateInToday(selectedDate) }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            header
+
+            Rectangle()
+                .fill(Color.white.opacity(0.08))
+                .frame(height: 1)
+
+            let events = EventListView.filteredEvents(events: calendarManager.events)
+            if events.isEmpty {
+                HStack(spacing: 6) {
+                    Image(systemName: "calendar.badge.checkmark")
+                        .foregroundStyle(Color(white: 0.65))
+                    Text(isToday ? "No events today" : "No events")
+                        .foregroundStyle(.white)
+                }
+                .font(.callout)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                EventListView(events: calendarManager.events)
+            }
+        }
+        .onChange(of: selectedDate) {
+            Task { await calendarManager.updateCurrentDate(selectedDate) }
+        }
+        .onChange(of: vm.notchState) { _, _ in
+            showToday()
+        }
+        .onAppear { showToday() }
+    }
+
+    private var header: some View {
+        HStack(spacing: 6) {
+            Button(action: showToday) {
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(TodoSchedule.dueLabel(selectedDate, now: Date()))
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(isToday ? Color.effectiveAccent : .gray)
+                    Text(selectedDate.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated)))
+                        .font(.callout.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+                }
+            }
+            .buttonStyle(PlainButtonStyle())
+            .help(isToday ? "" : "Back to today")
+
+            Spacer(minLength: 4)
+
+            iconButton("chevron.left", help: "Previous day") { moveDay(by: -1) }
+            iconButton("chevron.right", help: "Next day") { moveDay(by: 1) }
+            iconButton("calendar", help: "Show the whole month") {
+                withAnimation(.smooth) { Defaults[.calendarMonthView] = true }
+            }
+        }
+    }
+
+    private func iconButton(_ icon: String, help: LocalizedStringKey, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: icon)
+                .font(.system(size: 10, weight: .semibold))
+                .frame(width: 20, height: 20)
+                .background(Circle().fill(Color(nsColor: .secondarySystemFill)))
+        }
+        .buttonStyle(PlainButtonStyle())
+        .foregroundStyle(.gray)
+        .help(help)
+    }
+
+    private func moveDay(by days: Int) {
+        guard let day = Calendar.current.date(byAdding: .day, value: days, to: selectedDate) else { return }
+        withAnimation(.smooth) { selectedDate = day }
+    }
+
+    private func showToday() {
+        selectedDate = Date()
+        Task { await calendarManager.updateCurrentDate(selectedDate) }
+    }
+}
+
+/// The rounded panel the music player and the calendar sit in on Home
+struct HomeCard: ViewModifier {
+    func body(content: Content) -> some View {
+        let shape = RoundedRectangle(cornerRadius: 14, style: .continuous)
+        content
+            .background(shape.fill(Color.white.opacity(0.045)))
+            // Keeps the album-art glow inside the card
+            .clipShape(shape)
+            .overlay(shape.strokeBorder(Color.white.opacity(0.07), lineWidth: 1))
+    }
+}
+
+extension View {
+    func homeCard() -> some View {
+        modifier(HomeCard())
+    }
+}
+
 struct EmptyEventsView: View {
     let selectedDate: Date
     

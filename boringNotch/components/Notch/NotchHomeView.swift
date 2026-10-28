@@ -446,6 +446,9 @@ struct NotchHomeView: View {
             // The month needs most of the width, so it takes the place of the player; the camera stays beside it
             HStack(alignment: .top, spacing: 10) {
                 MonthCalendarView()
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .homeCard()
                     .onHover { isHovering in
                         vm.isHoveringCalendar = isHovering
                     }
@@ -454,7 +457,7 @@ struct NotchHomeView: View {
 
                 if shouldShowCamera {
                     camera
-                        .frame(width: 120, height: 120)
+                        .frame(width: 128, height: 128)
                 }
             }
             .blur(radius: vm.notchState == .closed ? 30 : 0)
@@ -471,22 +474,35 @@ struct NotchHomeView: View {
             .animation(.interactiveSpring(response: 0.32, dampingFraction: 0.76, blendDuration: 0), value: shouldShowCamera)
     }
 
-    private var playerAndCalendar: some View {
-        HStack(alignment: .top, spacing: (shouldShowCamera && Defaults[.showCalendar]) ? 10 : 15) {
-            MusicPlayerView(albumArtNamespace: albumArtNamespace)
+    /// Same height for both cards, so their edges line up
+    private let cardHeight: CGFloat = 124
 
+    private var playerAndCalendar: some View {
+        HStack(alignment: .top, spacing: 8) {
             if Defaults[.showCalendar] {
-                CalendarView()
-                    .frame(width: shouldShowCamera ? 170 : 215)
+                MusicPlayerView(albumArtNamespace: albumArtNamespace)
+                    .padding(.leading, 3)
+                    .padding(.trailing, 8)
+                    .frame(height: cardHeight)
+                    .homeCard()
+
+                AgendaCalendarView()
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 8)
+                    .frame(width: shouldShowCamera ? 180 : 220, height: cardHeight)
+                    .homeCard()
                     .onHover { isHovering in
                         vm.isHoveringCalendar = isHovering
                     }
                     .environmentObject(vm)
                     .transition(.opacity)
+            } else {
+                MusicPlayerView(albumArtNamespace: albumArtNamespace)
             }
 
             if shouldShowCamera {
                 camera
+                    .frame(width: cardHeight, height: cardHeight)
             }
         }
         .transition(.asymmetric(insertion: .opacity.combined(with: .move(edge: .top)), removal: .opacity))
