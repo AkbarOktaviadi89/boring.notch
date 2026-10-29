@@ -5,10 +5,13 @@
 //  Created by Akbar Oktaviadi on 2026-10-27.
 //
 
+import Defaults
 import SwiftUI
 
 struct DevToolsView: View {
     @ObservedObject var tools = DevToolsManager.shared
+    @ObservedObject var links = ShortLinkManager.shared
+    @Default(.shortLinkService) var linkService
     @FocusState private var isInputFocused: Bool
 
     var body: some View {
@@ -142,6 +145,11 @@ struct DevToolsView: View {
                     tools.pickColorFromScreen()
                 }
                 Spacer()
+            case .link:
+                CapsuleSegmentedPicker(options: ShortLinkService.allCases, selection: $linkService, title: \.rawValue)
+                    .fixedSize()
+                actionButton(links.isWorking ? "Shortening…" : "Shorten", icon: "link", primary: true) { runPrimaryAction() }
+                    .disabled(links.isWorking)
             }
         }
     }
@@ -176,6 +184,7 @@ struct DevToolsView: View {
         case .smart: return "Encoded payload, any mix of layers"
         case .regex: return "Text to search"
         case .cidr: return "192.168.1.0/24 or an IP"
+        case .link: return "https://… a long link to shorten"
         case .uuid, .color, .diff: return ""
         }
     }
@@ -202,6 +211,9 @@ struct DevToolsView: View {
         case .regex: tools.run { [pattern = tools.secondaryInput] in try SecurityTransforms.regexMatches(pattern: pattern, in: $0) }
         case .diff: tools.show(SecurityTransforms.lineDiff(tools.input, tools.secondaryInput))
         case .cidr: tools.run(SecurityTransforms.cidr)
+        case .link:
+            let text = tools.input
+            Task { await links.shorten(text, service: linkService) }
         case .uuid, .color: break
         }
     }
@@ -233,6 +245,14 @@ struct DevToolsView: View {
 
     @ViewBuilder
     private var output: some View {
+        if tools.tool == .link {
+            ShortLinkPanel()
+        } else {
+            standardOutput
+        }
+    }
+
+    private var standardOutput: some View {
         HStack(alignment: .top, spacing: 8) {
             Group {
                 if let error = tools.errorMessage {
@@ -294,6 +314,7 @@ struct ClipboardSuggestionLiveActivity: View {
         case .json: return "JSON"
         case .timestamp: return "Time"
         case .encoded: return "Decode"
+        case .link: return "Shorten"
         }
     }
 
@@ -301,7 +322,7 @@ struct ClipboardSuggestionLiveActivity: View {
         let sideWidth = FocusLiveActivity.sideWidth(notchHeight: vm.effectiveClosedNotchHeight)
 
         HStack {
-            Image(systemName: "wand.and.stars")
+            Image(systemName: kind == .link ? "link" : "wand.and.stars")
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(Color.effectiveAccent)
                 .frame(width: sideWidth)
@@ -318,7 +339,7 @@ struct ClipboardSuggestionLiveActivity: View {
                 .frame(width: sideWidth)
         }
         .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
-        .help("Copied text Dev Tools can decode. Open the notch to see it.")
+        .help(kind == .link ? "Copied a long link. Open the notch to shorten it." : "Copied text Dev Tools can decode. Open the notch to see it.")
     }
 }
 

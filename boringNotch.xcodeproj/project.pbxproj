@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		FC000000000000000000005C /* ShortLinkPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC000000000000000000005B /* ShortLinkPanel.swift */; };
+		FC000000000000000000005A /* ShortLinkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000059 /* ShortLinkManager.swift */; };
+		FC0000000000000000000058 /* ShortLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000057 /* ShortLinks.swift */; };
 		FC0000000000000000000056 /* ProcessGuard.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000055 /* ProcessGuard.swift */; };
 		FC0000000000000000000054 /* AppsMonitorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000053 /* AppsMonitorView.swift */; };
 		FC0000000000000000000052 /* AppUsageMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000051 /* AppUsageMonitor.swift */; };
@@ -221,6 +224,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		FC000000000000000000005B /* ShortLinkPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortLinkPanel.swift; sourceTree = "<group>"; };
+		FC0000000000000000000059 /* ShortLinkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortLinkManager.swift; sourceTree = "<group>"; };
+		FC0000000000000000000057 /* ShortLinks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortLinks.swift; sourceTree = "<group>"; };
 		FC0000000000000000000055 /* ProcessGuard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProcessGuard.swift; path = BoringNotchXPCHelper/ProcessGuard.swift; sourceTree = SOURCE_ROOT; };
 		FC0000000000000000000053 /* AppsMonitorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppsMonitorView.swift; sourceTree = "<group>"; };
 		FC0000000000000000000051 /* AppUsageMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUsageMonitor.swift; sourceTree = "<group>"; };
@@ -466,6 +472,7 @@
 		FC0000000000000000000011 /* DevTools */ = {
 			isa = PBXGroup;
 			children = (
+				FC000000000000000000005B /* ShortLinkPanel.swift */,
 				FC000000000000000000000F /* DevToolsView.swift */,
 			);
 			path = DevTools;
@@ -599,6 +606,7 @@
 				FC0000000000000000000042 /* Meetings.swift */,
 				FC000000000000000000004B /* Conversions.swift */,
 				FC000000000000000000004F /* AppUsage.swift */,
+				FC0000000000000000000057 /* ShortLinks.swift */,
 				FC0000000000000000000039 /* Notes.swift */,
 				FC0000000000000000000031 /* MonthGrid.swift */,
 				FC0000000000000000000029 /* Flashcards.swift */,
@@ -671,6 +679,7 @@
 				147163992C5D35FF0068B555 /* MusicManager.swift */,
 				FC0000000000000000000044 /* MeetingWatcher.swift */,
 				FC0000000000000000000051 /* AppUsageMonitor.swift */,
+				FC0000000000000000000059 /* ShortLinkManager.swift */,
 				FC000000000000000000003B /* NotesManager.swift */,
 				FC0000000000000000000037 /* TodoReminder.swift */,
 				FC000000000000000000002B /* FlashcardManager.swift */,
@@ -1124,6 +1133,9 @@
 				FC000000000000000000003E /* NotesView.swift in Sources */,
 				FC000000000000000000003C /* NotesManager.swift in Sources */,
 				FC000000000000000000003A /* Notes.swift in Sources */,
+				FC000000000000000000005C /* ShortLinkPanel.swift in Sources */,
+				FC000000000000000000005A /* ShortLinkManager.swift in Sources */,
+				FC0000000000000000000058 /* ShortLinks.swift in Sources */,
 				FC0000000000000000000056 /* ProcessGuard.swift in Sources */,
 				FC0000000000000000000054 /* AppsMonitorView.swift in Sources */,
 				FC0000000000000000000052 /* AppUsageMonitor.swift in Sources */,

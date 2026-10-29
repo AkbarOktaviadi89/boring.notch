@@ -29,6 +29,7 @@ LOGIC_SOURCES := \
 	boringNotch/helpers/Meetings.swift \
 	boringNotch/helpers/Conversions.swift \
 	boringNotch/helpers/AppUsage.swift \
+	boringNotch/helpers/ShortLinks.swift \
 	BoringNotchXPCHelper/ProcessGuard.swift
 TEST_SOURCES := $(wildcard Tests/LogicTests/*.swift)
 TEST_BINARY := build/tests/logic-tests

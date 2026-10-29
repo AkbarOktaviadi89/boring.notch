@@ -1197,7 +1197,10 @@ struct NotesSettings: View {
 
 struct DevToolsSettings: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @ObservedObject var links = ShortLinkManager.shared
     @Default(.devToolsEnabled) var devToolsEnabled
+    @Default(.clipboardSuggestions) var clipboardSuggestions
+    @Default(.shortLinkService) var linkService
 
     var body: some View {
         Form {
@@ -1227,6 +1230,31 @@ struct DevToolsSettings: View {
                 Text("Clipboard")
             } footer: {
                 Text("When you copy a JWT, JSON, a Unix timestamp or encoded text, the closed notch shows a hint for a few seconds; opening the notch then shows it decoded in Dev Tools. The clipboard is only read when it changes and is never stored. Text that password managers mark as concealed is ignored.")
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+
+            Section {
+                Picker("Shortener", selection: $linkService) {
+                    ForEach(ShortLinkService.allCases) { service in
+                        Text(service.rawValue).tag(service)
+                    }
+                }
+                Defaults.Toggle(key: .shortLinkSuggestions) {
+                    Text("Offer to shorten copied links")
+                }
+                .disabled(!devToolsEnabled || !clipboardSuggestions)
+                HStack {
+                    Text("\(links.history.count) recent short links")
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Button("Clear History") { links.clearHistory() }
+                        .disabled(links.history.isEmpty)
+                }
+            } header: {
+                Text("Short links")
+            } footer: {
+                Text("Copy a long link and the closed notch offers \"Shorten\"; open the notch and the short link is made and copied, with a QR code in Dev Tools › Link. Links go to the chosen public service and anyone with the short link can open it, so links that look like they carry a token or password ask first. If is.gd asks for a browser check, TinyURL is used instead.")
                     .foregroundStyle(.secondary)
                     .font(.caption)
             }

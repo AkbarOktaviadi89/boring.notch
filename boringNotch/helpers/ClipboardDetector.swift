@@ -13,6 +13,8 @@ enum ClipboardKind: Equatable {
     case timestamp
     /// URL, Base64, hex, HTML entity or unicode escape encoding that the smart decoder can peel off
     case encoded
+    /// A long web link worth shortening
+    case link
 }
 
 /// Recognizes copied text worth opening in Dev Tools. Foundation only, so it can be tested without the app.
@@ -43,6 +45,10 @@ enum ClipboardDetector {
         }
         if (try? SecurityTransforms.smartDecode(trimmed)) != nil {
             return .encoded
+        }
+        // After decoding: a link carrying an encoded payload is more likely being inspected than shared
+        if ShortLinks.worthShortening(trimmed) {
+            return .link
         }
         return nil
     }

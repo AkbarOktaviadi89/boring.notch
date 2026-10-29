@@ -30,6 +30,7 @@ final class DevToolsManager: ObservableObject {
         case uuid = "UUID"
         case timestamp = "Time"
         case color = "Color"
+        case link = "Link"
         case jwt = "JWT"
         case hash = "Hash"
         case hex = "Hex"
@@ -44,7 +45,7 @@ final class DevToolsManager: ObservableObject {
 
         var category: Category {
             switch self {
-            case .json, .base64, .url, .uuid, .timestamp, .color: return .dev
+            case .json, .base64, .url, .uuid, .timestamp, .color, .link: return .dev
             case .jwt, .hash, .hex, .html, .unicode, .smart, .regex, .diff, .cidr: return .security
             }
         }
@@ -131,6 +132,10 @@ final class DevToolsManager: ObservableObject {
         case .encoded:
             tool = .smart
             run(SecurityTransforms.smartDecode)
+        case .link:
+            tool = .link
+            // Opening the notch on the "Shorten" hint is the request to shorten it
+            Task { await ShortLinkManager.shared.shorten(input) }
         case nil:
             clearOutput()
         }

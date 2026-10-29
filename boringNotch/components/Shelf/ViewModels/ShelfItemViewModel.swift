@@ -304,6 +304,10 @@ final class ShelfItemViewModel: ObservableObject {
         }
 
         if !selectedFileURLs.isEmpty { addMenuItem(title: "Show in Finder") }
+        if selectedLinkURLs.count == 1, let link = selectedLinkURLs.first, let url = ShortLinks.normalize(link.absoluteString),
+           !ShortLinks.isShortened(url) {
+            addMenuItem(title: "Shorten Link")
+        }
         // Allow Quick Look for files and link URLs
         if !selectedFileURLs.isEmpty || !selectedLinkURLs.isEmpty {
             // Add Quick Look menu item
@@ -569,6 +573,9 @@ final class ShelfItemViewModel: ObservableObject {
                 let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
                 for it in selected { ShelfActionService.remove(it) }
                 
+            case "Shorten Link":
+                shortenSelectedLink()
+
             case "Remove Background":
                 handleRemoveBackground()
                 
@@ -842,6 +849,39 @@ final class ShelfItemViewModel: ObservableObject {
             }
         }
         
+        /// Adds the short link next to the long one on the Shelf and copies it
+        @MainActor
+        private func shortenSelectedLink() {
+            let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
+            guard let link = selected.compactMap({ item -> URL? in
+                if case .link(let url) = item.kind { return url }
+                return nil
+            }).first else { return }
+
+            Task {
+                let links = ShortLinkManager.shared
+                var record = await links.shorten(link.absoluteString)
+                if record == nil, let warning = links.warning {
+                    let alert = NSAlert()
+                    alert.messageText = "This link may contain a secret"
+                    alert.informativeText = "\(warning.reason) Anyone with the short link could open it."
+                    alert.alertStyle = .warning
+                    alert.addButton(withTitle: "Shorten Anyway")
+                    alert.addButton(withTitle: "Cancel")
+                    guard alert.runModal() == .alertFirstButtonReturn else {
+                        links.dismissMessages()
+                        return
+                    }
+                    record = await links.shorten(link.absoluteString, confirmed: true)
+                }
+                guard let record, let short = URL(string: record.short) else {
+                    showErrorAlert(title: "Couldn't Shorten the Link", message: links.errorMessage ?? "Unknown error")
+                    return
+                }
+                ShelfStateViewModel.shared.add([ShelfItem(kind: .link(url: short))])
+            }
+        }
+
         /// Converts the selected files; the results land in Downloads and on the Shelf
         @MainActor
         private func runConversion(_ action: ConversionAction) {

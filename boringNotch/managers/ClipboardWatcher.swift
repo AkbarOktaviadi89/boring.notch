@@ -99,7 +99,8 @@ final class ClipboardWatcher: ObservableObject {
         let types = pasteboard.types ?? []
         guard !types.contains(where: Self.skippedTypes.contains),
               let text = pasteboard.string(forType: .string),
-              let kind = ClipboardDetector.detect(text)
+              let kind = ClipboardDetector.detect(text),
+              kind != .link || Defaults[.shortLinkSuggestions]
         else {
             dismiss()
             return

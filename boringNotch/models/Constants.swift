@@ -212,6 +212,11 @@ extension Defaults.Keys {
     // MARK: Dev Tools
     static let devToolsEnabled = Key<Bool>("devToolsEnabled", default: true)
     static let clipboardSuggestions = Key<Bool>("clipboardSuggestions", default: true)
+    /// TinyURL first: is.gd answers automated requests with a Cloudflare browser check at times
+    static let shortLinkService = Key<ShortLinkService>("shortLinkService", default: .tinyurl)
+    /// Offer "Shorten" on the closed notch after copying a long link
+    static let shortLinkSuggestions = Key<Bool>("shortLinkSuggestions", default: true)
+    static let shortLinkHistory = Key<[ShortLinkRecord]>("shortLinkHistory", default: [])
 
     // MARK: Dev Servers
     static let devServersEnabled = Key<Bool>("devServersEnabled", default: true)
