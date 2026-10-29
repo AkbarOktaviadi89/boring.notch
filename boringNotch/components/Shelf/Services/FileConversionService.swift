@@ -47,6 +47,24 @@ final class FileConversionService: ObservableObject {
 
     /// What is running now, for the Shelf: "Converting with Microsoft Word…"
     @Published private(set) var status: String?
+    /// Why the last conversion didn't happen, shown on the Shelf for a few seconds
+    @Published private(set) var message: String?
+    private var messageTask: Task<Void, Never>?
+
+    func dismissMessage() {
+        messageTask?.cancel()
+        message = nil
+    }
+
+    func report(_ text: String) {
+        message = text
+        messageTask?.cancel()
+        messageTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(6))
+            guard !Task.isCancelled else { return }
+            self?.message = nil
+        }
+    }
 
     var outputDirectory: URL = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first
         ?? URL(fileURLWithPath: NSTemporaryDirectory())
@@ -55,9 +73,23 @@ final class FileConversionService: ObservableObject {
     func run(_ action: ConversionAction, on urls: [URL]) async throws -> [URL] {
         let inputs = urls.filter { action.accepts(Conversions.kind(ofExtension: $0.pathExtension)) }
         guard !inputs.isEmpty else { return [] }
+        message = nil
         status = inputs.count == 1 ? "Converting \(inputs[0].lastPathComponent)…" : "Converting \(inputs.count) files…"
         defer { status = nil }
+        do {
+            let results = try await perform(action, on: inputs)
+            // Seen when the notch is closed; the Shelf shows the results itself
+            let count = results.count
+            BoringViewCoordinator.shared.showToast(icon: "checkmark.circle.fill", title: "Converted",
+                                                   detail: count == 1 ? "1 file" : "\(count) files", tint: .green)
+            return results
+        } catch {
+            BoringViewCoordinator.shared.showToast(icon: "exclamationmark.triangle.fill", title: "Convert", detail: "failed", tint: .orange)
+            throw error
+        }
+    }
 
+    private func perform(_ action: ConversionAction, on inputs: [URL]) async throws -> [URL] {
         switch action {
         case .imagesToPDF:
             let output = destination(Conversions.outputName(for: action, input: inputs[0].lastPathComponent))
@@ -69,7 +101,10 @@ final class FileConversionService: ObservableObject {
             return [output]
         default:
             var results: [URL] = []
-            for input in inputs {
+            for (index, input) in inputs.enumerated() {
+                if inputs.count > 1 {
+                    status = "Converting \(index + 1) of \(inputs.count): \(input.lastPathComponent)…"
+                }
                 results.append(try await convert(input, action: action))
             }
             return results

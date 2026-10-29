@@ -28,6 +28,7 @@ struct ContentView: View {
     @ObservedObject var clipboardWatcher = ClipboardWatcher.shared
     @ObservedObject var todoReminder = TodoReminder.shared
     @ObservedObject var meetingWatcher = MeetingWatcher.shared
+    @ObservedObject var conversions = FileConversionService.shared
     // The focus live activity shows the chosen task's title, which lives here
     @ObservedObject var todoManager = TodoManager.shared
     @State private var hoverTask: Task<Void, Never>?
@@ -77,6 +78,8 @@ struct ContentView: View {
             chinWidth = 640
         } else if showFocusAnnouncement {
             chinWidth += (2 * FocusPhaseLiveActivity.sideWidth + 20)
+        } else if showConverting || showToast {
+            chinWidth += (2 * NotchToastView.sideWidth + 20)
         } else if showMeetingCountdown {
             chinWidth += (2 * MeetingLiveActivity.sideWidth + 20)
         } else if showTodoReminder || showClipboardSuggestion {
@@ -103,6 +106,16 @@ struct ContentView: View {
     private var showFocusAnnouncement: Bool {
         vm.notchState == .closed && !vm.hideOnClosed && !coordinator.expandingView.show
             && focusTimer.announcement != nil && focusTimerEnabled
+    }
+
+    /// A conversion that keeps going after the notch closed, a Word document say
+    private var showConverting: Bool {
+        vm.notchState == .closed && !vm.hideOnClosed && !coordinator.expandingView.show && conversions.status != nil
+    }
+
+    /// Confirms an action that happened with the notch closed, such as text copied from the screen
+    private var showToast: Bool {
+        vm.notchState == .closed && !vm.hideOnClosed && !coordinator.expandingView.show && coordinator.toast != nil
     }
 
     /// After a phase change, before everything else: a meeting about to start is easy to forget
@@ -209,14 +222,14 @@ struct ContentView: View {
                     }
                     .onChange(of: vm.notchState) { _, newState in
                         // Opening the notch while a clipboard suggestion shows opens it in Dev Tools
-                        if newState == .open && !coordinator.isQuickCapturing {
+                        if newState == .open && coordinator.overlay == nil {
                             // Same order as on the closed notch: whatever the user was just shown is where it opens
                             if !meetingWatcher.accept() && !TodoReminder.shared.accept() {
                                 clipboardWatcher.accept()
                             }
                         }
                         if newState == .closed {
-                            coordinator.isQuickCapturing = false
+                            coordinator.overlay = nil
                         }
                         if newState == .closed && isHovering {
                             withAnimation {
@@ -348,6 +361,14 @@ struct ContentView: View {
                           FocusPhaseLiveActivity(announcement: announcement)
                               .frame(alignment: .center)
                               .transition(.opacity)
+                      } else if showConverting, let status = conversions.status {
+                          ConvertingLiveActivity(status: status)
+                              .frame(alignment: .center)
+                              .transition(.opacity)
+                      } else if showToast, let toast = coordinator.toast {
+                          NotchToastView(toast: toast)
+                              .frame(alignment: .center)
+                              .transition(.opacity)
                       } else if showMeetingCountdown, let meeting = meetingWatcher.upcoming {
                           MeetingLiveActivity(meeting: meeting)
                               .frame(alignment: .center)
@@ -420,8 +441,12 @@ struct ContentView: View {
               .zIndex(2)
             if vm.notchState == .open {
                 VStack {
-                    if coordinator.isQuickCapturing {
-                        QuickCaptureView()
+                    if let overlay = coordinator.overlay {
+                        switch overlay {
+                        case .quickCapture: QuickCaptureView()
+                        case .clipboard: ClipboardHistoryView()
+                        case .translate: TranslateView()
+                        }
                     } else {
                     switch coordinator.currentView {
                     case .home:
@@ -455,7 +480,7 @@ struct ContentView: View {
             isTargeted: $vm.generalDropTargeting,
             acceptsDrop: {
                 // Not while a Shelf item is being dragged out, so it doesn't land back on the Shelf
-                vm.notchState == .open && coordinator.currentView == .shelf && !coordinator.isQuickCapturing
+                vm.notchState == .open && coordinator.currentView == .shelf && coordinator.overlay == nil
                     && Defaults[.boringShelf] && !ShelfSelectionModel.shared.isDragging
             },
             onDrop: { providers in
@@ -743,18 +768,24 @@ struct GeneralDropTargetDelegate: DropDelegate {
 
     func dropEntered(info: DropInfo) {
         isTargeted = true
+        // Over any part of the open Shelf, offer the conversion tiles, not only over its panel
+        if acceptsDrop() { ShelfDragState.shared.entered("notch", info: info) }
     }
 
     func dropExited(info: DropInfo) {
         isTargeted = false
+        ShelfDragState.shared.exited("notch")
     }
 
     func dropUpdated(info: DropInfo) -> DropProposal? {
-        DropProposal(operation: acceptsDrop() ? .copy : .cancel)
+        // The notch can open under a drag that already entered, so check again as it moves
+        if acceptsDrop() { ShelfDragState.shared.entered("notch", info: info) }
+        return DropProposal(operation: acceptsDrop() ? .copy : .cancel)
     }
 
     func performDrop(info: DropInfo) -> Bool {
         isTargeted = false
+        ShelfDragState.shared.finished()
         guard acceptsDrop() else { return false }
         let providers = info.itemProviders(for: Self.types)
         guard !providers.isEmpty else { return false }

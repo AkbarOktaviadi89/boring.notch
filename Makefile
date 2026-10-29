@@ -30,6 +30,11 @@ LOGIC_SOURCES := \
 	boringNotch/helpers/Conversions.swift \
 	boringNotch/helpers/AppUsage.swift \
 	boringNotch/helpers/ShortLinks.swift \
+	boringNotch/helpers/ClipboardHistory.swift \
+	boringNotch/helpers/TranslationPlan.swift \
+	boringNotch/helpers/TextLayout.swift \
+	boringNotch/helpers/PasswordGenerator.swift \
+	boringNotch/helpers/NetworkInfo.swift \
 	BoringNotchXPCHelper/ProcessGuard.swift
 TEST_SOURCES := $(wildcard Tests/LogicTests/*.swift)
 TEST_BINARY := build/tests/logic-tests
@@ -63,6 +68,8 @@ install: test build
 		osascript -e 'tell application id "$(BUNDLE_ID)" to quit'; \
 		for i in 1 2 3 4 5 6 7 8 9 10; do pgrep -f "Boring Notch.app/Contents/MacOS/Boring Notch" >/dev/null || break; sleep 0.5; done; \
 	fi
+	@# Copies from other places (an old Debug build, say) share the bundle id; stop them so only this build runs
+	@pkill -9 -f "Boring Notch.app/Contents/MacOS/Boring Notch" || true
 	@pkill -f "Boring Notch.app/Contents/Resources/mediaremote-adapter.pl" || true
 	@pkill -f "BoringNotchXPCHelper.xpc/Contents/MacOS/BoringNotchXPCHelper" || true
 	rm -rf "$(INSTALLED_APP)"

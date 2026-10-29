@@ -44,8 +44,10 @@ final class ClipboardWatcher: ObservableObject {
     func start() {
         guard settingsTask == nil else { return }
         settingsTask = Task { [weak self] in
-            for await (suggestions, devTools) in Defaults.updates(.clipboardSuggestions, .devToolsEnabled) {
-                self?.setPolling(suggestions && devTools)
+            for await (suggestions, devTools, history) in Defaults.updates(.clipboardSuggestions, .devToolsEnabled, .clipboardHistoryEnabled) {
+                // Translate hints don't need Dev Tools
+                _ = devTools
+                self?.setPolling(suggestions || history)
             }
         }
     }
@@ -78,9 +80,15 @@ final class ClipboardWatcher: ObservableObject {
     /// Loads the suggestion into Dev Tools and makes it the current tab. Returns false when there is none.
     @discardableResult
     func accept() -> Bool {
-        guard let suggestion, Defaults[.devToolsEnabled] else { return false }
-        DevToolsManager.shared.load(suggestion.text, kind: suggestion.kind)
-        BoringViewCoordinator.shared.currentView = .devTools
+        guard let suggestion else { return false }
+        if suggestion.kind == .translate {
+            TranslateManager.shared.load(suggestion.text)
+            BoringViewCoordinator.shared.overlay = .translate
+        } else {
+            guard Defaults[.devToolsEnabled] else { return false }
+            DevToolsManager.shared.load(suggestion.text, kind: suggestion.kind)
+            BoringViewCoordinator.shared.currentView = .devTools
+        }
         dismiss()
         return true
     }
@@ -95,13 +103,24 @@ final class ClipboardWatcher: ObservableObject {
         guard pasteboard.changeCount != lastChangeCount else { return }
         lastChangeCount = pasteboard.changeCount
 
-        guard Defaults[.clipboardSuggestions], Defaults[.devToolsEnabled] else { return }
         let types = pasteboard.types ?? []
-        guard !types.contains(where: Self.skippedTypes.contains),
-              let text = pasteboard.string(forType: .string),
-              let kind = ClipboardDetector.detect(text),
-              kind != .link || Defaults[.shortLinkSuggestions]
-        else {
+        // Password managers mark what they copy; it's neither kept nor looked at
+        guard !types.contains(where: Self.skippedTypes.contains) else {
+            dismiss()
+            return
+        }
+        if Defaults[.clipboardHistoryEnabled] {
+            ClipboardHistoryManager.shared.record(pasteboard, sourceApp: NSWorkspace.shared.frontmostApplication?.localizedName)
+        }
+
+        guard Defaults[.clipboardSuggestions], let text = pasteboard.string(forType: .string) else { return }
+        var kind = Defaults[.devToolsEnabled] ? ClipboardDetector.detect(text) : nil
+        if kind == .link && !Defaults[.shortLinkSuggestions] { kind = nil }
+        if kind == nil, Defaults[.translateSuggestions],
+           TranslationPlan.shouldOffer(text, detected: TranslateManager.detectLanguage(text)) {
+            kind = .translate
+        }
+        guard let kind else {
             dismiss()
             return
         }

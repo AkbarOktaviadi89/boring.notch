@@ -84,6 +84,8 @@ struct TabSelectionView: View {
             ForEach(sideTabs) { tab in
                     TabButton(label: tab.label, icon: tab.icon, selected: coordinator.currentView == tab.view, horizontalPadding: horizontalPadding) {
                         withAnimation(.smooth) {
+                            // A tab click leaves any shortcut panel
+                            coordinator.overlay = nil
                             coordinator.currentView = tab.view
                         }
                     }

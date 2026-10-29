@@ -145,6 +145,8 @@ struct DevToolsView: View {
                     tools.pickColorFromScreen()
                 }
                 Spacer()
+            case .password:
+                passwordControls
             case .link:
                 CapsuleSegmentedPicker(options: ShortLinkService.allCases, selection: $linkService, title: \.rawValue)
                     .fixedSize()
@@ -152,6 +154,69 @@ struct DevToolsView: View {
                     .disabled(links.isWorking)
             }
         }
+    }
+
+    private var passwordControls: some View {
+        HStack(spacing: 6) {
+            CapsuleSegmentedPicker(options: [false, true], selection: $tools.passphraseMode) { $0 ? "Passphrase" : "Password" }
+                .fixedSize()
+            HStack(spacing: 3) {
+                stepButton("minus") { adjustLength(-1) }
+                Text(tools.passphraseMode ? "\(tools.passphraseWords) words" : "\(tools.passwordOptions.length) chars")
+                    .font(.system(.caption, design: .rounded))
+                    .monospacedDigit()
+                    .frame(minWidth: 54)
+                stepButton("plus") { adjustLength(1) }
+            }
+            if !tools.passphraseMode {
+                optionChip("A–Z", isOn: $tools.passwordOptions.uppercase)
+                optionChip("a–z", isOn: $tools.passwordOptions.lowercase)
+                optionChip("0–9", isOn: $tools.passwordOptions.digits)
+                optionChip("#$%", isOn: $tools.passwordOptions.symbols)
+                optionChip("Easy to read", isOn: $tools.passwordOptions.avoidAmbiguous)
+                    .help("Leaves out look-alikes such as 0/O and 1/l/I")
+            }
+            Spacer(minLength: 0)
+            actionButton("New", icon: "arrow.triangle.2.circlepath", primary: true) { tools.generatePassword() }
+        }
+        .onChange(of: tools.passwordOptions) { tools.generatePassword() }
+        .onChange(of: tools.passphraseMode) { tools.generatePassword() }
+    }
+
+    private func adjustLength(_ step: Int) {
+        if tools.passphraseMode {
+            let range = PasswordGenerator.wordCountRange
+            tools.passphraseWords = min(max(tools.passphraseWords + step, range.lowerBound), range.upperBound)
+            tools.generatePassword()
+        } else {
+            let range = PasswordGenerator.lengthRange
+            // Steps of 4 past 16, where single characters matter less
+            let size = tools.passwordOptions.length >= 16 ? 4 : 1
+            tools.passwordOptions.length = min(max(tools.passwordOptions.length + step * size, range.lowerBound), range.upperBound)
+        }
+    }
+
+    private func stepButton(_ icon: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: icon)
+                .font(.system(size: 9, weight: .bold))
+                .frame(width: 18, height: 18)
+                .background(Circle().fill(Color(nsColor: .secondarySystemFill)))
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+
+    private func optionChip(_ title: String, isOn: Binding<Bool>) -> some View {
+        Button { isOn.wrappedValue.toggle() } label: {
+            Text(title)
+                .font(.system(.caption2, design: .rounded, weight: .semibold))
+                .padding(.horizontal, 7)
+                .padding(.vertical, 4)
+                .background(Capsule().fill(isOn.wrappedValue ? Color.effectiveAccent.opacity(0.35) : Color(nsColor: .secondarySystemFill)))
+                .foregroundStyle(isOn.wrappedValue ? .white : .gray)
+        }
+        .buttonStyle(PlainButtonStyle())
+        .fixedSize()
     }
 
     private var inputField: some View {
@@ -185,7 +250,7 @@ struct DevToolsView: View {
         case .regex: return "Text to search"
         case .cidr: return "192.168.1.0/24 or an IP"
         case .link: return "https://… a long link to shorten"
-        case .uuid, .color, .diff: return ""
+        case .uuid, .color, .diff, .password: return ""
         }
     }
 
@@ -214,6 +279,7 @@ struct DevToolsView: View {
         case .link:
             let text = tools.input
             Task { await links.shorten(text, service: linkService) }
+        case .password: tools.generatePassword()
         case .uuid, .color: break
         }
     }
@@ -315,6 +381,7 @@ struct ClipboardSuggestionLiveActivity: View {
         case .timestamp: return "Time"
         case .encoded: return "Decode"
         case .link: return "Shorten"
+        case .translate: return "Translate"
         }
     }
 
@@ -322,7 +389,7 @@ struct ClipboardSuggestionLiveActivity: View {
         let sideWidth = FocusLiveActivity.sideWidth(notchHeight: vm.effectiveClosedNotchHeight)
 
         HStack {
-            Image(systemName: kind == .link ? "link" : "wand.and.stars")
+            Image(systemName: kind == .link ? "link" : kind == .translate ? "character.bubble" : "wand.and.stars")
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(Color.effectiveAccent)
                 .frame(width: sideWidth)
@@ -339,7 +406,9 @@ struct ClipboardSuggestionLiveActivity: View {
                 .frame(width: sideWidth)
         }
         .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
-        .help(kind == .link ? "Copied a long link. Open the notch to shorten it." : "Copied text Dev Tools can decode. Open the notch to see it.")
+        .help(kind == .link ? "Copied a long link. Open the notch to shorten it."
+              : kind == .translate ? "Copied text in another language. Open the notch to translate it."
+              : "Copied text Dev Tools can decode. Open the notch to see it.")
     }
 }
 

@@ -14,6 +14,7 @@ struct ShelfView: View {
     @StateObject var selection = ShelfSelectionModel.shared
     @StateObject private var quickLookService = QuickLookService()
     @ObservedObject private var conversions = FileConversionService.shared
+    @ObservedObject private var dragState = ShelfDragState.shared
     private let spacing: CGFloat = 8
 
     var body: some View {
@@ -22,9 +23,18 @@ struct ShelfView: View {
                 .aspectRatio(1, contentMode: .fit)
                 .environmentObject(vm)
             panel
-                .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $vm.dragDetectorTargeting) { providers in
-                    handleDrop(providers: providers)
-                }
+                .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data],
+                        delegate: ShelfDropDelegate(id: "panel", isTargeted: $vm.dragDetectorTargeting, onDrop: handleDrop))
+
+        }
+        // Dragging files in turns the whole Shelf into drop targets: add as is, or convert on the way in.
+        // The whole width, not just the panel, so each tile is big enough to hit.
+        .overlay {
+            if dragState.isActive && !dragState.actions.isEmpty {
+                ShelfConvertDropZones()
+                    .environmentObject(vm)
+                    .transition(.opacity)
+            }
         }
         // Bind Quick Look to shelf selection
         .onChange(of: selection.selectedIDs) {
@@ -77,25 +87,47 @@ struct ShelfView: View {
             }
             .contentShape(Rectangle())
             .onTapGesture { selection.clear() }
-            .overlay(alignment: .bottomTrailing) {
+            // What's being converted, or why it wasn't, across the bottom of the panel
+            .overlay(alignment: .bottom) {
                 if let status = conversions.status {
-                    HStack(spacing: 6) {
+                    HStack(spacing: 8) {
                         ProgressView()
                             .controlSize(.small)
                         Text(status)
                             .lineLimit(1)
                             .truncationMode(.middle)
+                        Spacer(minLength: 0)
+                    }
+                    .font(.callout.weight(.medium))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 7)
+                    .background(RoundedRectangle(cornerRadius: 10).fill(Color.effectiveAccent.opacity(0.35)))
+                    .background(RoundedRectangle(cornerRadius: 10).fill(Color.black.opacity(0.9)))
+                    .padding(8)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                } else if let message = conversions.message {
+                    HStack(spacing: 8) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                        Text(message)
+                            .lineLimit(2)
+                        Spacer(minLength: 0)
+                        Image(systemName: "xmark")
+                            .font(.system(size: 9, weight: .bold))
                     }
                     .font(.caption)
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(Capsule().fill(Color.black.opacity(0.85)))
+                    .foregroundStyle(.orange)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(RoundedRectangle(cornerRadius: 10).fill(Color.black.opacity(0.92)))
                     .padding(8)
+                    .contentShape(Rectangle())
+                    .onTapGesture { conversions.dismissMessage() }
                     .transition(.opacity)
                 }
             }
             .animation(.smooth, value: conversions.status)
+            .animation(.smooth, value: conversions.message)
     }
 
     var content: some View {
@@ -124,9 +156,8 @@ struct ShelfView: View {
                 }
                 .padding(-spacing)
                 .scrollIndicators(.never)
-                .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $vm.dragDetectorTargeting) { providers in
-                    handleDrop(providers: providers)
-                }
+                .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data],
+                        delegate: ShelfDropDelegate(id: "items", isTargeted: $vm.dragDetectorTargeting, onDrop: handleDrop))
             }
         }
         .onAppear {

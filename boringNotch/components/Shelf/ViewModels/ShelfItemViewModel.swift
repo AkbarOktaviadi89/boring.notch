@@ -323,6 +323,10 @@ final class ShelfItemViewModel: ObservableObject {
 
         menu.addItem(NSMenuItem.separator())
         addMenuItem(title: "Share…")
+        // OCR for screenshots and photos; PDFs give their own text, or OCR when scanned
+        if selectedFileURLs.contains(where: { ImageProcessingService.shared.isImageFile($0) || $0.pathExtension.lowercased() == "pdf" }) {
+            addMenuItem(title: "Copy Text")
+        }
         
         // Every conversion that fits the selection, grouped by kind of file
         let conversions = Conversions.actions(forExtensions: selectedFileURLs.filter { !isDirectory($0) }.map(\.pathExtension))
@@ -575,6 +579,18 @@ final class ShelfItemViewModel: ObservableObject {
                 
             case "Shorten Link":
                 shortenSelectedLink()
+
+            case "Copy Text":
+                let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
+                let files = selected.compactMap { item -> URL? in
+                    guard case .file = item.kind else { return nil }
+                    return ShelfStateViewModel.shared.resolveAndUpdateBookmark(for: item)
+                }.filter { ImageProcessingService.shared.isImageFile($0) || $0.pathExtension.lowercased() == "pdf" }
+                Task {
+                    await files.accessSecurityScopedResources { accessible in
+                        await ScreenText.copyText(from: accessible)
+                    }
+                }
 
             case "Remove Background":
                 handleRemoveBackground()

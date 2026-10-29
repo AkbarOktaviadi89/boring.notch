@@ -243,13 +243,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         closeNotchTask?.cancel()
         closeNotchTask = nil
 
-        if viewModel.notchState == .open && coordinator.currentView == view && !coordinator.isQuickCapturing {
+        if viewModel.notchState == .open && coordinator.currentView == view && coordinator.overlay == nil {
             viewModel.close()
             return
         }
         prepare?()
         withAnimation(.smooth) {
-            coordinator.isQuickCapturing = false
+            coordinator.overlay = nil
             coordinator.currentView = view
         }
         if viewModel.notchState == .closed {
@@ -257,19 +257,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    /// Opens the notch with just the capture field; pressing the shortcut again closes it
+    /// Opens the notch on a shortcut panel (capture field, clipboard history, translator);
+    /// pressing the same shortcut again closes it
     @MainActor
-    private func toggleQuickCapture() {
+    private func toggleOverlay(_ overlay: NotchOverlay) {
         let viewModel = viewModelUnderMouse()
         closeNotchTask?.cancel()
         closeNotchTask = nil
 
-        if viewModel.notchState == .open && coordinator.isQuickCapturing {
+        if viewModel.notchState == .open && coordinator.overlay == overlay {
             viewModel.close()
             return
         }
         withAnimation(.smooth) {
-            coordinator.isQuickCapturing = true
+            coordinator.overlay = overlay
         }
         if viewModel.notchState == .closed {
             viewModel.open()
@@ -435,9 +436,34 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
+        KeyboardShortcuts.onKeyDown(for: .clipboardHistory) { [weak self] in
+            Task { @MainActor in
+                self?.toggleOverlay(.clipboard)
+            }
+        }
+
+        KeyboardShortcuts.onKeyDown(for: .translate) { [weak self] in
+            Task { @MainActor in
+                // Starts from what's on the clipboard; typing in the panel works too
+                if self?.coordinator.overlay != .translate { TranslateManager.shared.loadClipboard() }
+                self?.toggleOverlay(.translate)
+            }
+        }
+
+        KeyboardShortcuts.onKeyDown(for: .copyTextFromScreen) { [weak self] in
+            Task { @MainActor in
+                // The open notch would cover what the user wants to select
+                if let viewModel = self?.viewModelUnderMouse(), viewModel.notchState == .open {
+                    viewModel.close()
+                    try? await Task.sleep(for: .milliseconds(250))
+                }
+                await ScreenText.captureAndCopy()
+            }
+        }
+
         KeyboardShortcuts.onKeyDown(for: .quickCapture) { [weak self] in
             Task { @MainActor in
-                self?.toggleQuickCapture()
+                self?.toggleOverlay(.quickCapture)
             }
         }
 

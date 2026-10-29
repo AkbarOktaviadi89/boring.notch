@@ -78,4 +78,17 @@ func runConversionsTests() {
     contains("close powerpoint", Conversions.closeScript(app: .powerPoint, quit: false), "close active presentation")
     check("close keeps running app", String(Conversions.closeScript(app: .word, quit: false).contains("quit")), "false")
     contains("close quits launched app", Conversions.closeScript(app: .keynote, quit: true), "quit")
+
+    // Drop tiles while dragging
+    func quick(_ kinds: [ConvertibleKind], _ count: Int = 1) -> String {
+        Conversions.quickActions(for: kinds, fileCount: count).map(\.rawValue).joined(separator: ",")
+    }
+    check("quick image", quick([.image]), "imagesToPDF,toJPG,shrinkImage,toPNG")
+    check("quick one pdf", quick([.pdf]), "compressPDF,pdfToImages,splitPDF")
+    check("quick two pdfs", quick([.pdf], 2), "mergePDFs,compressPDF,pdfToImages")
+    check("quick document", quick([.document(.text)]), "documentToPDF")
+    check("quick video", quick([.video]), "toMP4,extractAudio,shrinkVideo")
+    check("quick mixed keeps one each", quick([.image, .pdf]), "imagesToPDF,compressPDF,pdfToImages,splitPDF")
+    check("quick nothing", quick([]), "")
+    check("short title", ConversionAction.documentToPDF.shortTitle, "To PDF")
 }

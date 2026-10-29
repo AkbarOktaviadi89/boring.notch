@@ -46,13 +46,40 @@ struct ExpandedItem {
     var browser: BrowserType = .chromium
 }
 
+/// A short confirmation on the closed notch: an icon and a word on the left, a detail on the right
+struct NotchToast: Equatable {
+    let icon: String
+    let title: String
+    let detail: String
+    let tint: Color
+}
+
+/// Panels a shortcut opens over the tabs; they close with the notch
+enum NotchOverlay: Equatable {
+    case quickCapture
+    case clipboard
+    case translate
+}
+
 @MainActor
 class BoringViewCoordinator: ObservableObject {
     static let shared = BoringViewCoordinator()
 
     @Published var currentView: NotchViews = .home
-    /// Set by the quick-capture shortcut: the open notch shows one input field instead of the current tab
-    @Published var isQuickCapturing: Bool = false
+    /// Set by a shortcut: the open notch shows this panel instead of the current tab
+    @Published var overlay: NotchOverlay?
+    @Published private(set) var toast: NotchToast?
+    private var toastTask: Task<Void, Never>?
+
+    func showToast(icon: String, title: String, detail: String, tint: Color) {
+        toast = NotchToast(icon: icon, title: title, detail: detail, tint: tint)
+        toastTask?.cancel()
+        toastTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(3))
+            guard !Task.isCancelled else { return }
+            self?.toast = nil
+        }
+    }
     @Published var helloAnimationRunning: Bool = false
     private var sneakPeekDispatch: DispatchWorkItem?
     private var expandingViewDispatch: DispatchWorkItem?

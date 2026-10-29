@@ -29,5 +29,7 @@ import Foundation
     // Apps monitor: every process with its CPU, memory and energy, then a force quit guarded by ProcessGuard
     func appUsageReport(with reply: @escaping (String?) -> Void)
     func forceQuitProcess(_ pid: Int32, with reply: @escaping (Bool) -> Void)
+    // Network monitor: interfaces, DNS, gateway and hardware port names (scutil and friends, outside the sandbox)
+    func networkReport(with reply: @escaping (String?) -> Void)
 }
 

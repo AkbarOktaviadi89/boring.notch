@@ -15,6 +15,8 @@ enum ClipboardKind: Equatable {
     case encoded
     /// A long web link worth shortening
     case link
+    /// Prose in another language than the user's; decided by ClipboardWatcher, which can detect languages
+    case translate
 }
 
 /// Recognizes copied text worth opening in Dev Tools. Foundation only, so it can be tested without the app.

@@ -193,6 +193,18 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         reply(processes + "\n" + ProcessGuard.reportSeparator + "\n" + energy)
     }
 
+    /// Four reports joined by a separator line; the app's NetworkInfoParser reads them
+    @objc func networkReport(with reply: @escaping (String?) -> Void) {
+        let separator = "\n@@BORING-NOTCH-SECTION@@\n"
+        let parts = [
+            Self.run("/usr/sbin/scutil", ["--nwi"]) ?? "",
+            Self.run("/usr/sbin/scutil", ["--dns"]) ?? "",
+            Self.run("/sbin/route", ["-n", "get", "default"]) ?? "",
+            Self.run("/usr/sbin/networksetup", ["-listallhardwareports"]) ?? "",
+        ]
+        reply(parts.joined(separator: separator))
+    }
+
     /// Checked here again, not only in the app: the user's own processes outside macOS's system folders
     @objc func forceQuitProcess(_ pid: Int32, with reply: @escaping (Bool) -> Void) {
         guard pid > 1, pid != getpid(),

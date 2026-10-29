@@ -11,6 +11,7 @@ import SwiftUI
 enum MonitorSection: String, CaseIterable, Identifiable, Defaults.Serializable {
     case system = "System"
     case apps = "Apps"
+    case network = "Network"
     case servers = "Servers"
 
     var id: Self { self }
@@ -26,6 +27,8 @@ struct MonitorView: View {
             SystemMonitorView()
         case .apps:
             AppsMonitorView()
+        case .network:
+            NetworkMonitorView()
         case .servers:
             DevServersView()
         }

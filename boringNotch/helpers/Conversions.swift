@@ -104,6 +104,37 @@ enum ConversionAction: String, CaseIterable {
         }
     }
 
+    /// A word or two for a drop tile in the Shelf
+    var shortTitle: String {
+        switch self {
+        case .documentToPDF, .imagesToPDF: return "To PDF"
+        case .toJPG: return "To JPG"
+        case .toPNG: return "To PNG"
+        case .toHEIC: return "To HEIC"
+        case .toTIFF: return "To TIFF"
+        case .shrinkImage: return "Shrink"
+        case .mergePDFs: return "Merge"
+        case .splitPDF: return "Split"
+        case .pdfToImages: return "To images"
+        case .compressPDF: return "Compress"
+        case .toMP4: return "To MP4"
+        case .extractAudio: return "Audio only"
+        case .shrinkVideo: return "Shrink"
+        case .audioToM4A: return "To M4A"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .documentToPDF, .imagesToPDF, .mergePDFs: return "doc.richtext"
+        case .toJPG, .toPNG, .toHEIC, .toTIFF, .pdfToImages: return "photo"
+        case .shrinkImage, .shrinkVideo, .compressPDF: return "arrow.down.right.and.arrow.up.left"
+        case .splitPDF: return "square.split.2x1"
+        case .toMP4: return "film"
+        case .extractAudio, .audioToM4A: return "waveform"
+        }
+    }
+
     /// The image format the action writes, or nil when it isn't a format change
     var imageExtension: String? {
         switch self {
@@ -168,6 +199,30 @@ enum Conversions {
                 return true
             }
         }
+    }
+
+    /// Tiles shown while files are dragged over the Shelf, before their names are known: the most used action
+    /// for each kind of file being dragged, at most `limit`
+    static func quickActions(for kinds: [ConvertibleKind], fileCount: Int, limit: Int = 4) -> [ConversionAction] {
+        var actions: [ConversionAction] = []
+        func add(_ list: [ConversionAction]) {
+            for action in list where !actions.contains(action) { actions.append(action) }
+        }
+        let hasDocuments = kinds.contains { if case .document = $0 { return true } else { return false } }
+        if hasDocuments { add([.documentToPDF]) }
+        if kinds.contains(.pdf) { add(fileCount >= 2 ? [.mergePDFs, .compressPDF, .pdfToImages] : [.compressPDF, .pdfToImages, .splitPDF]) }
+        if kinds.contains(.image) { add([.imagesToPDF, .toJPG, .shrinkImage, .toPNG]) }
+        if kinds.contains(.video) { add([.toMP4, .extractAudio, .shrinkVideo]) }
+        if kinds.contains(.audio) { add([.audioToM4A]) }
+        // With several kinds at once, keep one of each before filling up
+        if kinds.count > 1 {
+            var firstOfEach: [ConversionAction] = []
+            for kind in kinds {
+                if let first = actions.first(where: { $0.accepts(kind) && !firstOfEach.contains($0) }) { firstOfEach.append(first) }
+            }
+            actions = firstOfEach + actions.filter { !firstOfEach.contains($0) }
+        }
+        return Array(actions.prefix(limit))
     }
 
     private static func normalizedImageExtension(_ ext: String) -> String {

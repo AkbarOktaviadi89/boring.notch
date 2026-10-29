@@ -1198,6 +1198,8 @@ struct NotesSettings: View {
 struct DevToolsSettings: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @ObservedObject var links = ShortLinkManager.shared
+    @ObservedObject var clipboard = ClipboardHistoryManager.shared
+    @State private var confirmClearClipboard = false
     @Default(.devToolsEnabled) var devToolsEnabled
     @Default(.clipboardSuggestions) var clipboardSuggestions
     @Default(.shortLinkService) var linkService
@@ -1223,15 +1225,41 @@ struct DevToolsSettings: View {
 
             Section {
                 Defaults.Toggle(key: .clipboardSuggestions) {
-                    Text("Suggest decoding copied text")
+                    Text("Suggest actions for copied text")
                 }
-                .disabled(!devToolsEnabled)
+                Defaults.Toggle(key: .translateSuggestions) {
+                    Text("Offer to translate text that isn't Indonesian")
+                }
+                .disabled(!clipboardSuggestions)
             } header: {
                 Text("Clipboard")
             } footer: {
                 Text("When you copy a JWT, JSON, a Unix timestamp or encoded text, the closed notch shows a hint for a few seconds; opening the notch then shows it decoded in Dev Tools. The clipboard is only read when it changes and is never stored. Text that password managers mark as concealed is ignored.")
                     .foregroundStyle(.secondary)
                     .font(.caption)
+            }
+
+            Section {
+                Defaults.Toggle(key: .clipboardHistoryEnabled) {
+                    Text("Keep a clipboard history")
+                }
+                HStack {
+                    Text("\(clipboard.entries.count) items, \(clipboard.entries.filter(\.isPinned).count) pinned")
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Button("Clear History…") { confirmClearClipboard = true }
+                        .disabled(clipboard.entries.isEmpty)
+                }
+            } header: {
+                Text("Clipboard history")
+            } footer: {
+                Text("The last \(ClipboardHistory.limit) texts, links and images you copied, plus anything pinned, stay on this Mac only. Press ⌃⌥⌘V to search them. Anything a password manager marks as concealed is never kept, and files copied in Finder go to the Shelf instead.")
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+            .confirmationDialog("Clear the clipboard history?", isPresented: $confirmClearClipboard) {
+                Button("Clear Unpinned") { clipboard.clearUnpinned() }
+                Button("Clear Everything", role: .destructive) { clipboard.clearAll() }
             }
 
             Section {
@@ -2133,6 +2161,30 @@ struct Shortcuts: View {
             }
             Section {
                 KeyboardShortcuts.Recorder("Toggle Notch Open:", name: .toggleNotchOpen)
+            }
+            Section {
+                KeyboardShortcuts.Recorder("Clipboard History:", name: .clipboardHistory)
+            } footer: {
+                Text("Search what you copied, press Return, then ⌘V where you want it.")
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+            Section {
+                KeyboardShortcuts.Recorder("Copy Text from Screen:", name: .copyTextFromScreen)
+            } footer: {
+                Text("Drag over any part of the screen (or press Space to pick a window) and the text in it is copied, read on this Mac in Indonesian and English. The first time, macOS asks to allow Screen Recording.")
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+            Section {
+                KeyboardShortcuts.Recorder("Translate:", name: .translate)
+            } footer: {
+                Text("Translates the clipboard between Indonesian and English on this Mac, without the internet once the languages are downloaded.")
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
             }
             Section {
                 KeyboardShortcuts.Recorder("Quick Capture:", name: .quickCapture)

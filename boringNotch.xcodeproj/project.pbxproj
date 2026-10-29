@@ -7,6 +7,20 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		FC000000000000000000007A /* ShelfConvertDropZones.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000079 /* ShelfConvertDropZones.swift */; };
+		FC0000000000000000000078 /* NetworkMonitorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000077 /* NetworkMonitorView.swift */; };
+		FC0000000000000000000076 /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000075 /* NetworkMonitor.swift */; };
+		FC0000000000000000000074 /* NetworkInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000073 /* NetworkInfo.swift */; };
+		FC0000000000000000000072 /* PasswordGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000071 /* PasswordGenerator.swift */; };
+		FC0000000000000000000070 /* NotchToastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC000000000000000000006F /* NotchToastView.swift */; };
+		FC000000000000000000006E /* TextRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC000000000000000000006D /* TextRecognizer.swift */; };
+		FC000000000000000000006C /* TextLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC000000000000000000006B /* TextLayout.swift */; };
+		FC0000000000000000000069 /* TranslateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000068 /* TranslateView.swift */; };
+		FC0000000000000000000067 /* TranslateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000066 /* TranslateManager.swift */; };
+		FC0000000000000000000065 /* TranslationPlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000064 /* TranslationPlan.swift */; };
+		FC0000000000000000000062 /* ClipboardHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000061 /* ClipboardHistoryView.swift */; };
+		FC0000000000000000000060 /* ClipboardHistoryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC000000000000000000005F /* ClipboardHistoryManager.swift */; };
+		FC000000000000000000005E /* ClipboardHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC000000000000000000005D /* ClipboardHistory.swift */; };
 		FC000000000000000000005C /* ShortLinkPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC000000000000000000005B /* ShortLinkPanel.swift */; };
 		FC000000000000000000005A /* ShortLinkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000059 /* ShortLinkManager.swift */; };
 		FC0000000000000000000058 /* ShortLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000057 /* ShortLinks.swift */; };
@@ -224,6 +238,20 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		FC0000000000000000000079 /* ShelfConvertDropZones.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShelfConvertDropZones.swift; sourceTree = "<group>"; };
+		FC0000000000000000000077 /* NetworkMonitorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitorView.swift; sourceTree = "<group>"; };
+		FC0000000000000000000075 /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
+		FC0000000000000000000073 /* NetworkInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkInfo.swift; sourceTree = "<group>"; };
+		FC0000000000000000000071 /* PasswordGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasswordGenerator.swift; sourceTree = "<group>"; };
+		FC000000000000000000006F /* NotchToastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchToastView.swift; sourceTree = "<group>"; };
+		FC000000000000000000006D /* TextRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextRecognizer.swift; sourceTree = "<group>"; };
+		FC000000000000000000006B /* TextLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextLayout.swift; sourceTree = "<group>"; };
+		FC0000000000000000000068 /* TranslateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslateView.swift; sourceTree = "<group>"; };
+		FC0000000000000000000066 /* TranslateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslateManager.swift; sourceTree = "<group>"; };
+		FC0000000000000000000064 /* TranslationPlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslationPlan.swift; sourceTree = "<group>"; };
+		FC0000000000000000000061 /* ClipboardHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardHistoryView.swift; sourceTree = "<group>"; };
+		FC000000000000000000005F /* ClipboardHistoryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardHistoryManager.swift; sourceTree = "<group>"; };
+		FC000000000000000000005D /* ClipboardHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardHistory.swift; sourceTree = "<group>"; };
 		FC000000000000000000005B /* ShortLinkPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortLinkPanel.swift; sourceTree = "<group>"; };
 		FC0000000000000000000059 /* ShortLinkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortLinkManager.swift; sourceTree = "<group>"; };
 		FC0000000000000000000057 /* ShortLinks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortLinks.swift; sourceTree = "<group>"; };
@@ -443,6 +471,22 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		FC000000000000000000006A /* Translate */ = {
+			isa = PBXGroup;
+			children = (
+				FC0000000000000000000068 /* TranslateView.swift */,
+			);
+			path = Translate;
+			sourceTree = "<group>";
+		};
+		FC0000000000000000000063 /* Clipboard */ = {
+			isa = PBXGroup;
+			children = (
+				FC0000000000000000000061 /* ClipboardHistoryView.swift */,
+			);
+			path = Clipboard;
+			sourceTree = "<group>";
+		};
 		FC000000000000000000004A /* QuickCapture */ = {
 			isa = PBXGroup;
 			children = (
@@ -464,6 +508,7 @@
 			children = (
 				FC0000000000000000000018 /* DevServersView.swift */,
 				FC0000000000000000000053 /* AppsMonitorView.swift */,
+				FC0000000000000000000077 /* NetworkMonitorView.swift */,
 				FC0000000000000000000021 /* MonitorView.swift */,
 			);
 			path = DevServers;
@@ -538,6 +583,7 @@
 				11F747CD2EC75CEA00F841DB /* DragPreviewView.swift */,
 				110029292E8691B400035A57 /* FileShareView.swift */,
 				1113ABC32E80E27000EC13B2 /* ShelfItemView.swift */,
+				FC0000000000000000000079 /* ShelfConvertDropZones.swift */,
 				9A987A032C73CA66005CA465 /* ShelfView.swift */,
 			);
 			path = Views;
@@ -607,6 +653,11 @@
 				FC000000000000000000004B /* Conversions.swift */,
 				FC000000000000000000004F /* AppUsage.swift */,
 				FC0000000000000000000057 /* ShortLinks.swift */,
+				FC000000000000000000005D /* ClipboardHistory.swift */,
+				FC0000000000000000000064 /* TranslationPlan.swift */,
+				FC000000000000000000006B /* TextLayout.swift */,
+				FC0000000000000000000071 /* PasswordGenerator.swift */,
+				FC0000000000000000000073 /* NetworkInfo.swift */,
 				FC0000000000000000000039 /* Notes.swift */,
 				FC0000000000000000000031 /* MonthGrid.swift */,
 				FC0000000000000000000029 /* Flashcards.swift */,
@@ -653,6 +704,8 @@
 				B186542F2C6F455E000B926A /* Notch */,
 				9A0887332C7AFF7E00C160EA /* Tabs */,
 				FC000000000000000000003F /* Notes */,
+				FC000000000000000000006A /* Translate */,
+				FC0000000000000000000063 /* Clipboard */,
 				FC000000000000000000004A /* QuickCapture */,
 				FC000000000000000000001A /* DevServers */,
 				FC0000000000000000000011 /* DevTools */,
@@ -680,6 +733,10 @@
 				FC0000000000000000000044 /* MeetingWatcher.swift */,
 				FC0000000000000000000051 /* AppUsageMonitor.swift */,
 				FC0000000000000000000059 /* ShortLinkManager.swift */,
+				FC000000000000000000005F /* ClipboardHistoryManager.swift */,
+				FC0000000000000000000066 /* TranslateManager.swift */,
+				FC000000000000000000006D /* TextRecognizer.swift */,
+				FC0000000000000000000075 /* NetworkMonitor.swift */,
 				FC000000000000000000003B /* NotesManager.swift */,
 				FC0000000000000000000037 /* TodoReminder.swift */,
 				FC000000000000000000002B /* FlashcardManager.swift */,
@@ -884,6 +941,7 @@
 				1194E8862EA6DDA7009C82D6 /* BoringNotchSkyLightWindow.swift */,
 				1160F8D72DD98230006FBB94 /* NotchShape.swift */,
 				9AB0C6BB2C73C9CB00F7CD30 /* NotchHomeView.swift */,
+				FC000000000000000000006F /* NotchToastView.swift */,
 				14D570C52C5F38210011E668 /* BoringHeader.swift */,
 				14D570D12C5F6C6A0011E668 /* BoringExtrasMenu.swift */,
 				1471A8582C6281BD0058408D /* BoringNotchWindow.swift */,
@@ -1133,6 +1191,20 @@
 				FC000000000000000000003E /* NotesView.swift in Sources */,
 				FC000000000000000000003C /* NotesManager.swift in Sources */,
 				FC000000000000000000003A /* Notes.swift in Sources */,
+				FC000000000000000000007A /* ShelfConvertDropZones.swift in Sources */,
+				FC0000000000000000000078 /* NetworkMonitorView.swift in Sources */,
+				FC0000000000000000000076 /* NetworkMonitor.swift in Sources */,
+				FC0000000000000000000074 /* NetworkInfo.swift in Sources */,
+				FC0000000000000000000072 /* PasswordGenerator.swift in Sources */,
+				FC0000000000000000000070 /* NotchToastView.swift in Sources */,
+				FC000000000000000000006E /* TextRecognizer.swift in Sources */,
+				FC000000000000000000006C /* TextLayout.swift in Sources */,
+				FC0000000000000000000069 /* TranslateView.swift in Sources */,
+				FC0000000000000000000067 /* TranslateManager.swift in Sources */,
+				FC0000000000000000000065 /* TranslationPlan.swift in Sources */,
+				FC0000000000000000000062 /* ClipboardHistoryView.swift in Sources */,
+				FC0000000000000000000060 /* ClipboardHistoryManager.swift in Sources */,
+				FC000000000000000000005E /* ClipboardHistory.swift in Sources */,
 				FC000000000000000000005C /* ShortLinkPanel.swift in Sources */,
 				FC000000000000000000005A /* ShortLinkManager.swift in Sources */,
 				FC0000000000000000000058 /* ShortLinks.swift in Sources */,

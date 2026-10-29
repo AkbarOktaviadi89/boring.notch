@@ -18,5 +18,8 @@ extension KeyboardShortcuts.Name {
     // Opens Dev Tools with the clipboard loaded. ⌃⌥⌘ because ⌥⌘D already shows and hides the Dock.
     static let openDevTools = Self("openDevTools", default: .init(.d, modifiers: [.control, .option, .command]))
     // ⌃⌥Space is taken by macOS for switching input sources, so capture follows the ⌃⌥⌘ family as well
+    static let clipboardHistory = Self("clipboardHistory", default: .init(.v, modifiers: [.control, .option, .command]))
+    static let translate = Self("translate", default: .init(.l, modifiers: [.control, .option, .command]))
+    static let copyTextFromScreen = Self("copyTextFromScreen", default: .init(.t, modifiers: [.control, .option, .command]))
     static let quickCapture = Self("quickCapture", default: .init(.n, modifiers: [.control, .option, .command]))
 }

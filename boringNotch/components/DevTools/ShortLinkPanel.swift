@@ -22,9 +22,11 @@ struct ShortLinkPanel: View {
                     .frame(width: 190)
             }
         }
-        .padding(8)
+        .padding(6)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(RoundedRectangle(cornerRadius: 10).fill(Color.white.opacity(0.05)))
+        // About 80 pt are left under the tool row; nothing in here may draw over the tool chips above
+        .clipped()
     }
 
     // MARK: - Result
@@ -32,14 +34,14 @@ struct ShortLinkPanel: View {
     @ViewBuilder
     private var main: some View {
         if let warning = links.warning {
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 4) {
                 Label("This link may contain a secret", systemImage: "exclamationmark.shield.fill")
-                    .font(.callout.weight(.semibold))
+                    .font(.caption.weight(.semibold))
                     .foregroundStyle(.orange)
                 Text("\(warning.reason) Anyone with the short link could open it.")
-                    .font(.caption)
+                    .font(.caption2)
                     .foregroundStyle(.gray)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .lineLimit(2)
                 HStack(spacing: 6) {
                     pill("Shorten anyway", icon: "link", tint: .orange) {
                         Task { await links.shorten(warning.url.absoluteString, confirmed: true) }
@@ -49,9 +51,9 @@ struct ShortLinkPanel: View {
             }
         } else if let error = links.errorMessage {
             Label(error, systemImage: "exclamationmark.triangle.fill")
-                .font(.callout)
+                .font(.caption)
                 .foregroundStyle(.red)
-                .fixedSize(horizontal: false, vertical: true)
+                .lineLimit(3)
         } else if links.isWorking {
             HStack(spacing: 6) {
                 ProgressView().controlSize(.small)
@@ -63,9 +65,9 @@ struct ShortLinkPanel: View {
             result(record)
         } else {
             Text("Paste a long link and press Shorten. The short link is copied for you, with a QR code to scan.")
-                .font(.callout)
+                .font(.caption)
                 .foregroundStyle(.gray.opacity(0.7))
-                .fixedSize(horizontal: false, vertical: true)
+                .lineLimit(3)
         }
     }
 
@@ -75,29 +77,33 @@ struct ShortLinkPanel: View {
                 Image(nsImage: qr)
                     .interpolation(.none)
                     .resizable()
-                    .frame(width: 78, height: 78)
-                    .padding(4)
+                    .frame(width: 58, height: 58)
+                    .padding(3)
                     .background(RoundedRectangle(cornerRadius: 6).fill(.white))
                     // Drag it into a document, a chat or the Shelf
                     .onDrag { NSItemProvider(object: qr) }
                     .help("QR code for \(record.short). Drag it anywhere.")
             }
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text(record.short)
-                    .font(.system(.title3, design: .monospaced, weight: .semibold))
+                    .font(.system(.headline, design: .monospaced))
                     .textSelection(.enabled)
                     .lineLimit(1)
-                Text(record.original)
-                    .font(.caption)
-                    .foregroundStyle(.gray)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-                    .help(record.original)
+                // The fallback notice takes the original link's line, so the block keeps its height
                 if let notice = links.notice {
                     Text(notice)
                         .font(.caption2)
                         .foregroundStyle(.orange)
-                        .fixedSize(horizontal: false, vertical: true)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                        .help(notice)
+                } else {
+                    Text(record.original)
+                        .font(.caption)
+                        .foregroundStyle(.gray)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .help(record.original)
                 }
                 HStack(spacing: 6) {
                     pill(links.didCopy ? "Copied" : "Copy", icon: links.didCopy ? "checkmark" : "doc.on.doc", tint: .effectiveAccent) {
@@ -110,7 +116,6 @@ struct ShortLinkPanel: View {
                         .font(.caption2)
                         .foregroundStyle(.gray)
                 }
-                .padding(.top, 2)
             }
         }
     }
@@ -147,8 +152,8 @@ struct ShortLinkPanel: View {
                 Text(title)
             }
             .font(.system(.caption, design: .rounded, weight: tint == nil ? .regular : .semibold))
-            .padding(.horizontal, 10)
-            .padding(.vertical, 4)
+            .padding(.horizontal, 9)
+            .padding(.vertical, 3)
             .background(Capsule().fill(tint ?? Color(nsColor: .secondarySystemFill)))
             .foregroundStyle(.white)
         }
