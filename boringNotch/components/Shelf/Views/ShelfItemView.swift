@@ -231,6 +231,12 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
             mouseDownEvent = event
             onClick?(event, self)
         }
+
+        // The panel's "tap on empty space" fires on mouse up, however long the button was held
+        override func mouseUp(with event: NSEvent) {
+            ShelfSelectionModel.shared.noteItemClick()
+            super.mouseUp(with: event)
+        }
         
         override func mouseDragged(with event: NSEvent) {
             guard let mouseDownEvent = mouseDownEvent else {

@@ -98,6 +98,7 @@ final class ShelfItemViewModel: ObservableObject {
 
     // MARK: - Actions
     func handleClick(event: NSEvent, view: NSView) {
+        selection.noteItemClick()
         let flags = event.modifierFlags
         if flags.contains(.shift) {
             selection.shiftSelect(to: item, in: ShelfStateViewModel.shared.items)
@@ -112,6 +113,7 @@ final class ShelfItemViewModel: ObservableObject {
     }
 
     func handleRightClick(event: NSEvent, view: NSView) {
+        selection.noteItemClick()
         if !selection.isSelected(item.id) { selection.selectSingle(item) }
         presentContextMenu(event: event, in: view)
     }

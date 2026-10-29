@@ -22,6 +22,20 @@ final class ShelfSelectionModel: ObservableObject {
     // Anchor for shift-range selection
     private var lastAnchorID: UUID? = nil
 
+    /// When an item was last clicked. The panel behind the items also sees that click as a tap on empty space
+    /// and would clear the selection it just made, so it ignores taps that come right after an item click.
+    private(set) var lastItemClick = Date.distantPast
+
+    func noteItemClick() {
+        lastItemClick = Date()
+    }
+
+    /// A click on empty Shelf space, not the tail of a click on an item
+    func clearFromEmptySpaceTap() {
+        guard Date().timeIntervalSince(lastItemClick) > 0.35 else { return }
+        clear()
+    }
+
     func isSelected(_ id: UUID) -> Bool { selectedIDs.contains(id) }
 
     var hasSelection: Bool { !selectedIDs.isEmpty }
@@ -85,3 +99,4 @@ final class ShelfSelectionModel: ObservableObject {
         isDragging = false
     }
 }
+

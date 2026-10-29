@@ -25,17 +25,19 @@ struct ShelfView: View {
             panel
                 .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data],
                         delegate: ShelfDropDelegate(id: "panel", isTargeted: $vm.dragDetectorTargeting, onDrop: handleDrop))
+                // Dragging files in turns the panel into drop targets: add as is, or convert on the way in.
+                // Only the panel: the AirDrop square beside it keeps working.
+                .overlay {
+                    if showsConvertZones {
+                        ShelfConvertDropZones()
+                            .environmentObject(vm)
+                            .transition(.opacity)
+                    }
+                }
 
         }
-        // Dragging files in turns the whole Shelf into drop targets: add as is, or convert on the way in.
-        // The whole width, not just the panel, so each tile is big enough to hit.
-        .overlay {
-            if dragState.isActive && !dragState.actions.isEmpty {
-                ShelfConvertDropZones()
-                    .environmentObject(vm)
-                    .transition(.opacity)
-            }
-        }
+        // Leaving the Shelf ends any drag state, so tiles never stay over it
+        .onDisappear { dragState.finished() }
         // Bind Quick Look to shelf selection
         .onChange(of: selection.selectedIDs) {
             updateQuickLookSelection()
@@ -43,6 +45,10 @@ struct ShelfView: View {
         .quickLookPresenter(using: quickLookService)
     }
     
+    private var showsConvertZones: Bool {
+        dragState.isActive && !dragState.actions.isEmpty
+    }
+
     private func handleDrop(providers: [NSItemProvider]) -> Bool {
         guard !selection.isDragging else { return false }
         vm.dropEvent = true
@@ -72,8 +78,9 @@ struct ShelfView: View {
     var panel: some View {
         RoundedRectangle(cornerRadius: 16)
             .stroke(
-                // A drop anywhere on the open notch lands here too, see GeneralDropTargetDelegate
-                vm.dragDetectorTargeting || vm.generalDropTargeting
+                // A drop anywhere on the open notch lands here too, see GeneralDropTargetDelegate.
+                // Under the convert tiles the tiles show where the drop goes, so this border stays quiet.
+                (vm.dragDetectorTargeting || vm.generalDropTargeting) && !showsConvertZones
                     ? Color.accentColor.opacity(0.9)
                     : Color.white.opacity(0.1),
                 style: StrokeStyle(lineWidth: 3, lineCap: .round, dash: [10])
@@ -86,7 +93,7 @@ struct ShelfView: View {
                 transaction.animation = vm.animation
             }
             .contentShape(Rectangle())
-            .onTapGesture { selection.clear() }
+            .onTapGesture { selection.clearFromEmptySpaceTap() }
             // What's being converted, or why it wasn't, across the bottom of the panel
             .overlay(alignment: .bottom) {
                 if let status = conversions.status {

@@ -30,6 +30,9 @@ final class ShelfDragState: ObservableObject {
 
     private var targets: Set<String> = []
     private var hideTask: Task<Void, Never>?
+    /// Ends the drag state once the mouse button is up: macOS doesn't always report the drag leaving
+    /// (the notch closing mid-drag, a drag cancelled elsewhere), and stale tiles would cover the Shelf
+    private var watchdog: Task<Void, Never>?
     /// The drag pasteboard is read once per drag, not on every pointer move
     private var readChangeCount = -1
 
@@ -57,7 +60,24 @@ final class ShelfDragState: ObservableObject {
             if kinds != self.kinds { self.kinds = kinds }
             fileCount = max(1, urls.isEmpty ? info.itemProviders(for: [.fileURL]).count : urls.count)
         }
-        if !isActive { withAnimation(.smooth(duration: 0.2)) { isActive = true } }
+        if !isActive {
+            withAnimation(.smooth(duration: 0.2)) { isActive = true }
+            watchForDragEnd()
+        }
+    }
+
+    private func watchForDragEnd() {
+        watchdog?.cancel()
+        watchdog = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(250))
+                guard let self, !Task.isCancelled else { return }
+                if NSEvent.pressedMouseButtons & 1 == 0 {
+                    self.finished()
+                    return
+                }
+            }
+        }
     }
 
     static func kinds(ofFiles urls: [URL]) -> [ConvertibleKind] {
@@ -84,6 +104,7 @@ final class ShelfDragState: ObservableObject {
 
     func finished() {
         hideTask?.cancel()
+        watchdog?.cancel()
         readChangeCount = -1
         targets = []
         highlighted = nil
@@ -179,20 +200,25 @@ struct ShelfConvertDropZones: View {
     @ObservedObject var state = ShelfDragState.shared
 
     var body: some View {
-        HStack(spacing: 6) {
-            tile(id: "add", title: "Add to Shelf", icon: "tray.and.arrow.down.fill", onDrop: addToShelf)
-            ForEach(state.actions, id: \.self) { action in
-                tile(id: action.rawValue, title: action.shortTitle, icon: action.icon) { providers in
-                    vm.dropEvent = true
-                    ShelfDragState.convert(providers, with: action)
-                    return true
+        // Adding as is: a slim full-width strip on top, so the conversions below get the panel's width to share
+        VStack(spacing: 6) {
+            tile(id: "add", title: "Add to Shelf", icon: "tray.and.arrow.down.fill", compact: true, onDrop: addToShelf)
+                .frame(height: 30)
+            HStack(spacing: 6) {
+                ForEach(state.actions, id: \.self) { action in
+                    tile(id: action.rawValue, title: action.shortTitle, icon: action.icon, compact: false) { providers in
+                        vm.dropEvent = true
+                        ShelfDragState.convert(providers, with: action)
+                        return true
+                    }
+                    .help(action.title)
                 }
-                .help(action.title)
             }
         }
         .padding(6)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(RoundedRectangle(cornerRadius: 16).fill(Color.black.opacity(0.9)))
+        // Same shape as the panel it covers
+        .background(RoundedRectangle(cornerRadius: 16).fill(Color.black.opacity(0.92)))
         // The gaps between tiles are a target too (adding to the Shelf), so the pointer is never over
         // nothing while the tiles cover the panel
         .contentShape(Rectangle())
@@ -207,17 +233,24 @@ struct ShelfConvertDropZones: View {
     }
 
     /// Equal widths and a fixed frame: a tile that grows when highlighted moves its own edge under the pointer
-    private func tile(id: String, title: String, icon: String,
+    private func tile(id: String, title: String, icon: String, compact: Bool,
                       onDrop: @escaping ([NSItemProvider]) -> Bool) -> some View {
         let isOn = state.highlighted == id
-        return VStack(spacing: 5) {
+        let label = Group {
             Image(systemName: icon)
-                .font(.system(size: 18, weight: .semibold))
+                .font(.system(size: compact ? 13 : 18, weight: .semibold))
             Text(title)
                 .font(.system(.caption, design: .rounded, weight: .semibold))
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
                 .minimumScaleFactor(0.8)
+        }
+        return Group {
+            if compact {
+                HStack(spacing: 6) { label }
+            } else {
+                VStack(spacing: 5) { label }
+            }
         }
         .foregroundStyle(isOn ? .white : .gray)
         .frame(maxWidth: .infinity, maxHeight: .infinity)

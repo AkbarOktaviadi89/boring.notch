@@ -230,6 +230,7 @@ struct ContentView: View {
                         }
                         if newState == .closed {
                             coordinator.overlay = nil
+                            ShelfDragState.shared.finished()
                         }
                         if newState == .closed && isHovering {
                             withAnimation {
