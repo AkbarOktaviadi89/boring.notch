@@ -21,5 +21,6 @@ extension KeyboardShortcuts.Name {
     static let clipboardHistory = Self("clipboardHistory", default: .init(.v, modifiers: [.control, .option, .command]))
     static let translate = Self("translate", default: .init(.l, modifiers: [.control, .option, .command]))
     static let copyTextFromScreen = Self("copyTextFromScreen", default: .init(.t, modifiers: [.control, .option, .command]))
+    static let folders = Self("folders", default: .init(.f, modifiers: [.control, .option, .command]))
     static let quickCapture = Self("quickCapture", default: .init(.n, modifiers: [.control, .option, .command]))
 }

@@ -213,6 +213,11 @@ extension Defaults.Keys {
     static let devToolsEnabled = Key<Bool>("devToolsEnabled", default: true)
     static let clipboardSuggestions = Key<Bool>("clipboardSuggestions", default: true)
     static let clipboardHistoryEnabled = Key<Bool>("clipboardHistoryEnabled", default: true)
+    static let pinnedFolders = Key<[PinnedFolder]>("pinnedFolders", default: [])
+    /// Folders removed from the Folders panel's automatic list
+    static let hiddenFolders = Key<[String]>("hiddenFolders", default: [])
+    /// Opens from the Folders panel itself: path -> [count, last open in seconds since 1970]
+    static let folderOpens = Key<[String: [Double]]>("folderOpens", default: [:])
     /// Offer "Translate" on the closed notch after copying text that isn't Indonesian
     static let translateSuggestions = Key<Bool>("translateSuggestions", default: true)
     static let clipboardHistory = Key<[ClipEntry]>("clipboardHistory", default: [])

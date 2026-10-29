@@ -31,5 +31,8 @@ import Foundation
     func forceQuitProcess(_ pid: Int32, with reply: @escaping (Bool) -> Void)
     // Network monitor: interfaces, DNS, gateway and hardware port names (scutil and friends, outside the sandbox)
     func networkReport(with reply: @escaping (String?) -> Void)
+    // Folders panel: folders Finder opened lately (Spotlight's last-used date and use count), and opening one in Finder
+    func recentFoldersReport(days: Int, with reply: @escaping (String?) -> Void)
+    func openFolder(_ path: String, with reply: @escaping (Bool) -> Void)
 }
 

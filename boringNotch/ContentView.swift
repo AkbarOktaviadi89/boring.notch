@@ -447,6 +447,7 @@ struct ContentView: View {
                         case .quickCapture: QuickCaptureView()
                         case .clipboard: ClipboardHistoryView()
                         case .translate: TranslateView()
+                        case .folders: FoldersView()
                         }
                     } else {
                     switch coordinator.currentView {

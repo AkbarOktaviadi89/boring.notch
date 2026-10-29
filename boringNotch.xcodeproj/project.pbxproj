@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		FC0000000000000000000080 /* FoldersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC000000000000000000007F /* FoldersView.swift */; };
+		FC000000000000000000007E /* FoldersManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC000000000000000000007D /* FoldersManager.swift */; };
+		FC000000000000000000007C /* FolderRanking.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC000000000000000000007B /* FolderRanking.swift */; };
 		FC000000000000000000007A /* ShelfConvertDropZones.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000079 /* ShelfConvertDropZones.swift */; };
 		FC0000000000000000000078 /* NetworkMonitorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000077 /* NetworkMonitorView.swift */; };
 		FC0000000000000000000076 /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000075 /* NetworkMonitor.swift */; };
@@ -238,6 +241,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		FC000000000000000000007F /* FoldersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoldersView.swift; sourceTree = "<group>"; };
+		FC000000000000000000007D /* FoldersManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoldersManager.swift; sourceTree = "<group>"; };
+		FC000000000000000000007B /* FolderRanking.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderRanking.swift; sourceTree = "<group>"; };
 		FC0000000000000000000079 /* ShelfConvertDropZones.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShelfConvertDropZones.swift; sourceTree = "<group>"; };
 		FC0000000000000000000077 /* NetworkMonitorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitorView.swift; sourceTree = "<group>"; };
 		FC0000000000000000000075 /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
@@ -471,6 +477,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		FC0000000000000000000081 /* Folders */ = {
+			isa = PBXGroup;
+			children = (
+				FC000000000000000000007F /* FoldersView.swift */,
+			);
+			path = Folders;
+			sourceTree = "<group>";
+		};
 		FC000000000000000000006A /* Translate */ = {
 			isa = PBXGroup;
 			children = (
@@ -658,6 +672,7 @@
 				FC000000000000000000006B /* TextLayout.swift */,
 				FC0000000000000000000071 /* PasswordGenerator.swift */,
 				FC0000000000000000000073 /* NetworkInfo.swift */,
+				FC000000000000000000007B /* FolderRanking.swift */,
 				FC0000000000000000000039 /* Notes.swift */,
 				FC0000000000000000000031 /* MonthGrid.swift */,
 				FC0000000000000000000029 /* Flashcards.swift */,
@@ -704,6 +719,7 @@
 				B186542F2C6F455E000B926A /* Notch */,
 				9A0887332C7AFF7E00C160EA /* Tabs */,
 				FC000000000000000000003F /* Notes */,
+				FC0000000000000000000081 /* Folders */,
 				FC000000000000000000006A /* Translate */,
 				FC0000000000000000000063 /* Clipboard */,
 				FC000000000000000000004A /* QuickCapture */,
@@ -737,6 +753,7 @@
 				FC0000000000000000000066 /* TranslateManager.swift */,
 				FC000000000000000000006D /* TextRecognizer.swift */,
 				FC0000000000000000000075 /* NetworkMonitor.swift */,
+				FC000000000000000000007D /* FoldersManager.swift */,
 				FC000000000000000000003B /* NotesManager.swift */,
 				FC0000000000000000000037 /* TodoReminder.swift */,
 				FC000000000000000000002B /* FlashcardManager.swift */,
@@ -1191,6 +1208,9 @@
 				FC000000000000000000003E /* NotesView.swift in Sources */,
 				FC000000000000000000003C /* NotesManager.swift in Sources */,
 				FC000000000000000000003A /* Notes.swift in Sources */,
+				FC0000000000000000000080 /* FoldersView.swift in Sources */,
+				FC000000000000000000007E /* FoldersManager.swift in Sources */,
+				FC000000000000000000007C /* FolderRanking.swift in Sources */,
 				FC000000000000000000007A /* ShelfConvertDropZones.swift in Sources */,
 				FC0000000000000000000078 /* NetworkMonitorView.swift in Sources */,
 				FC0000000000000000000076 /* NetworkMonitor.swift in Sources */,

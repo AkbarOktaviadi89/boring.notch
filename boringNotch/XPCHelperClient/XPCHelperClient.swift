@@ -327,6 +327,37 @@ final class XPCHelperClient: NSObject {
         }
     }
 
+    nonisolated func recentFoldersReport(days: Int) async -> String? {
+        do {
+            let service = await MainActor.run {
+                ensureRemoteService()
+            }
+            let result: String? = try await service.withContinuation { service, continuation in
+                service.recentFoldersReport(days: days) { report in
+                    continuation.resume(returning: report)
+                }
+            }
+            return result
+        } catch {
+            return nil
+        }
+    }
+
+    nonisolated func openFolder(_ path: String) async -> Bool {
+        do {
+            let service = await MainActor.run {
+                ensureRemoteService()
+            }
+            return try await service.withContinuation { service, continuation in
+                service.openFolder(path) { success in
+                    continuation.resume(returning: success)
+                }
+            }
+        } catch {
+            return false
+        }
+    }
+
     nonisolated func forceQuitProcess(_ pid: Int32) async -> Bool {
         do {
             let service = await MainActor.run {

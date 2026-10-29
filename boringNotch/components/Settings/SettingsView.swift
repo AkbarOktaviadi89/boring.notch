@@ -2145,6 +2145,8 @@ struct AccentCircleButton: View {
 }
 
 struct Shortcuts: View {
+    @ObservedObject var folders = FoldersManager.shared
+
     var body: some View {
         Form {
             Section {
@@ -2161,6 +2163,21 @@ struct Shortcuts: View {
             }
             Section {
                 KeyboardShortcuts.Recorder("Toggle Notch Open:", name: .toggleNotchOpen)
+            }
+            Section {
+                KeyboardShortcuts.Recorder("Folders:", name: .folders)
+                HStack {
+                    Text("\(folders.pinned.count) pinned, \(folders.hidden.count) removed from the list")
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Button("Show Removed Again") { folders.restoreHidden() }
+                        .disabled(folders.hidden.isEmpty)
+                }
+            } footer: {
+                Text("Folders you open often lately, from Finder's own record, plus the ones you pin. Click to open, drop files on a folder to copy them there.")
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
             }
             Section {
                 KeyboardShortcuts.Recorder("Clipboard History:", name: .clipboardHistory)

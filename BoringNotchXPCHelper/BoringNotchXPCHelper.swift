@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import CoreServices
 import ApplicationServices
 import IOKit
 import CoreGraphics
@@ -203,6 +204,36 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
             Self.run("/usr/sbin/networksetup", ["-listallhardwareports"]) ?? "",
         ]
         reply(parts.joined(separator: separator))
+    }
+
+    /// "path<TAB>last used (seconds since 1970)<TAB>use count" per folder in the home folder used in the last `days` days
+    @objc func recentFoldersReport(days: Int, with reply: @escaping (String?) -> Void) {
+        let home = NSHomeDirectory()
+        let query = "kMDItemContentType == \"public.folder\" && kMDItemLastUsedDate >= $time.today(-\(max(1, min(days, 365))))"
+        guard let listing = Self.run("/usr/bin/mdfind", ["-onlyin", home, query]) else {
+            reply(nil)
+            return
+        }
+        let lines = listing.split(whereSeparator: \.isNewline).compactMap { line -> String? in
+            let path = String(line)
+            guard let item = MDItemCreate(nil, path as CFString),
+                  let date = MDItemCopyAttribute(item, kMDItemLastUsedDate) as? Date else { return nil }
+            let count = (MDItemCopyAttribute(item, "kMDItemUseCount" as CFString) as? NSNumber)?.intValue ?? 1
+            return "\(path)\t\(date.timeIntervalSince1970)\t\(count)"
+        }
+        reply(lines.joined(separator: "\n"))
+    }
+
+    /// Shows a folder in Finder. Only existing folders: this isn't a way to open arbitrary files or apps.
+    @objc func openFolder(_ path: String, with reply: @escaping (Bool) -> Void) {
+        var isDirectory: ObjCBool = false
+        guard path.hasPrefix("/"), FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory), isDirectory.boolValue,
+              !["app", "bundle", "framework"].contains((path as NSString).pathExtension.lowercased())
+        else {
+            reply(false)
+            return
+        }
+        reply(Self.run("/usr/bin/open", [path]) != nil)
     }
 
     /// Checked here again, not only in the app: the user's own processes outside macOS's system folders

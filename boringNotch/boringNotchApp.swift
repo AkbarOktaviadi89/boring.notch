@@ -461,6 +461,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
+        KeyboardShortcuts.onKeyDown(for: .folders) { [weak self] in
+            Task { @MainActor in
+                self?.toggleOverlay(.folders)
+            }
+        }
+
         KeyboardShortcuts.onKeyDown(for: .quickCapture) { [weak self] in
             Task { @MainActor in
                 self?.toggleOverlay(.quickCapture)
