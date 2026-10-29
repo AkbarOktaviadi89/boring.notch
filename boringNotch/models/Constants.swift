@@ -214,12 +214,21 @@ extension Defaults.Keys {
     static let clipboardSuggestions = Key<Bool>("clipboardSuggestions", default: true)
     static let clipboardHistoryEnabled = Key<Bool>("clipboardHistoryEnabled", default: true)
     static let pinnedFolders = Key<[PinnedFolder]>("pinnedFolders", default: [])
+    /// New screenshots and screen recordings go onto the Shelf
+    static let screenshotsToShelf = Key<Bool>("screenshotsToShelf", default: true)
+    /// Access to a screenshot folder outside Pictures and Downloads, granted once
+    static let screenshotFolderBookmark = Key<Data?>("screenshotFolderBookmark", default: nil)
+    /// Downloads show their progress on the closed notch and finished ones go onto the Shelf
+    static let downloadsOnNotch = Key<Bool>("downloadsOnNotch", default: true)
+    static let downloadsToShelf = Key<Bool>("downloadsToShelf", default: true)
     /// Folders removed from the Folders panel's automatic list
     static let hiddenFolders = Key<[String]>("hiddenFolders", default: [])
     /// Opens from the Folders panel itself: path -> [count, last open in seconds since 1970]
     static let folderOpens = Key<[String: [Double]]>("folderOpens", default: [:])
     /// Offer "Translate" on the closed notch after copying text that isn't Indonesian
     static let translateSuggestions = Key<Bool>("translateSuggestions", default: true)
+    /// Offer "Summarize" after copying long text, when Apple Intelligence is on
+    static let assistantSuggestions = Key<Bool>("assistantSuggestions", default: true)
     static let clipboardHistory = Key<[ClipEntry]>("clipboardHistory", default: [])
     /// TinyURL first: is.gd answers automated requests with a Cloudflare browser check at times
     static let shortLinkService = Key<ShortLinkService>("shortLinkService", default: .tinyurl)

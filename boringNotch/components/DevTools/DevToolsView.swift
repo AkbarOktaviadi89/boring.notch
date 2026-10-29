@@ -382,6 +382,7 @@ struct ClipboardSuggestionLiveActivity: View {
         case .encoded: return "Decode"
         case .link: return "Shorten"
         case .translate: return "Translate"
+        case .summarize: return "Summarize"
         }
     }
 
@@ -389,7 +390,7 @@ struct ClipboardSuggestionLiveActivity: View {
         let sideWidth = FocusLiveActivity.sideWidth(notchHeight: vm.effectiveClosedNotchHeight)
 
         HStack {
-            Image(systemName: kind == .link ? "link" : kind == .translate ? "character.bubble" : "wand.and.stars")
+            Image(systemName: kind == .link ? "link" : kind == .translate ? "character.bubble" : kind == .summarize ? "sparkles" : "wand.and.stars")
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(Color.effectiveAccent)
                 .frame(width: sideWidth)

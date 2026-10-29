@@ -2146,6 +2146,7 @@ struct AccentCircleButton: View {
 
 struct Shortcuts: View {
     @ObservedObject var folders = FoldersManager.shared
+    @ObservedObject var screenshots = ScreenshotWatcher.shared
 
     var body: some View {
         Form {
@@ -2163,6 +2164,47 @@ struct Shortcuts: View {
             }
             Section {
                 KeyboardShortcuts.Recorder("Toggle Notch Open:", name: .toggleNotchOpen)
+            }
+            Section {
+                KeyboardShortcuts.Recorder("AI Assistant:", name: .assistant)
+                Defaults.Toggle(key: .assistantSuggestions) {
+                    Text("Offer \"Summarize\" after copying long text")
+                }
+                if let reason = AssistantManager.unavailableReason {
+                    Text(reason).foregroundStyle(.orange)
+                }
+            } footer: {
+                Text("Summarize, rewrite (formal, shorter, friendly) or pull to-dos out of the clipboard with Apple's on-device model. Indonesian text is translated to English and back on this Mac, since the model doesn't read Indonesian yet.")
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+            Section {
+                Defaults.Toggle(key: .screenshotsToShelf) {
+                    Text("Put new screenshots on the Shelf")
+                }
+                if let path = screenshots.needsAccessTo {
+                    HStack {
+                        Text("Screenshots are saved to \((path as NSString).abbreviatingWithTildeInPath)").foregroundStyle(.secondary)
+                        Spacer()
+                        Button("Allow Access…") { screenshots.requestAccess() }
+                    }
+                } else if let folder = screenshots.watchedFolder {
+                    Text("Watching \((folder as NSString).abbreviatingWithTildeInPath)").foregroundStyle(.secondary)
+                }
+                Defaults.Toggle(key: .downloadsOnNotch) {
+                    Text("Show download progress on the notch")
+                }
+                Defaults.Toggle(key: .downloadsToShelf) {
+                    Text("Put finished downloads on the Shelf")
+                }
+            } header: {
+                Text("Screenshots and downloads")
+            } footer: {
+                Text("If you change where screenshots are saved (Screenshot › Options › Save to), turn the first switch off and on again.")
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
             }
             Section {
                 KeyboardShortcuts.Recorder("Folders:", name: .folders)

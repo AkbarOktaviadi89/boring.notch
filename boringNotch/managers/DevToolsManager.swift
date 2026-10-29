@@ -143,7 +143,7 @@ final class DevToolsManager: ObservableObject {
             tool = .link
             // Opening the notch on the "Shorten" hint is the request to shorten it
             Task { await ShortLinkManager.shared.shorten(input) }
-        case .translate, nil:
+        case .translate, .summarize, nil:
             clearOutput()
         }
     }

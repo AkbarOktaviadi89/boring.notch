@@ -76,3 +76,47 @@ struct ConvertingLiveActivity: View {
         .help(status)
     }
 }
+
+/// On the closed notch while files download into ~/Downloads
+struct DownloadLiveActivity: View {
+    @EnvironmentObject var vm: BoringViewModel
+    let downloads: [DownloadProgressWatcher.ActiveDownload]
+
+    private var fraction: Double { DownloadNaming.overall(downloads.map(\.fraction)) }
+
+    var body: some View {
+        HStack {
+            HStack(spacing: 6) {
+                ZStack {
+                    Circle().stroke(Color.white.opacity(0.15), lineWidth: 2.5)
+                    Circle()
+                        .trim(from: 0, to: fraction)
+                        .stroke(Color.effectiveAccent, style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
+                        .rotationEffect(.degrees(-90))
+                        .animation(.linear(duration: 0.3), value: fraction)
+                    Image(systemName: "arrow.down")
+                        .font(.system(size: 7, weight: .bold))
+                }
+                .frame(width: 15, height: 15)
+                Text(downloads.count == 1 ? downloads[0].name : "\(downloads.count) files")
+                    .font(.system(size: 11, weight: .medium, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.85))
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+            }
+            .frame(width: NotchToastView.sideWidth)
+
+            Rectangle()
+                .fill(.black)
+                .frame(width: vm.closedNotchSize.width + -cornerRadiusInsets.closed.top)
+
+            Text(DownloadNaming.percent(fraction))
+                .font(.system(size: 12, weight: .semibold, design: .rounded))
+                .monospacedDigit()
+                .foregroundStyle(.white)
+                .frame(width: NotchToastView.sideWidth)
+        }
+        .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
+        .help(downloads.map(\.name).joined(separator: "\n"))
+    }
+}

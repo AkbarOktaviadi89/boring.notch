@@ -358,6 +358,22 @@ final class XPCHelperClient: NSObject {
         }
     }
 
+    nonisolated func screenshotLocation() async -> String? {
+        do {
+            let service = await MainActor.run {
+                ensureRemoteService()
+            }
+            let result: String? = try await service.withContinuation { service, continuation in
+                service.screenshotLocation { path in
+                    continuation.resume(returning: path)
+                }
+            }
+            return result
+        } catch {
+            return nil
+        }
+    }
+
     nonisolated func forceQuitProcess(_ pid: Int32) async -> Bool {
         do {
             let service = await MainActor.run {

@@ -427,6 +427,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         ClipboardWatcher.shared.start()
         TodoReminder.shared.start()
         MeetingWatcher.shared.start()
+        ScreenshotWatcher.shared.start()
+        DownloadProgressWatcher.shared.start()
 
         KeyboardShortcuts.onKeyDown(for: .openDevTools) { [weak self] in
             Task { @MainActor in
@@ -464,6 +466,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         KeyboardShortcuts.onKeyDown(for: .folders) { [weak self] in
             Task { @MainActor in
                 self?.toggleOverlay(.folders)
+            }
+        }
+
+        KeyboardShortcuts.onKeyDown(for: .assistant) { [weak self] in
+            Task { @MainActor in
+                // Starts from the clipboard, like Translate
+                if self?.coordinator.overlay != .assistant { AssistantManager.shared.loadClipboard() }
+                self?.toggleOverlay(.assistant)
             }
         }
 

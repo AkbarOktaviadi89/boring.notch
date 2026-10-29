@@ -29,6 +29,7 @@ struct ContentView: View {
     @ObservedObject var todoReminder = TodoReminder.shared
     @ObservedObject var meetingWatcher = MeetingWatcher.shared
     @ObservedObject var conversions = FileConversionService.shared
+    @ObservedObject var downloads = DownloadProgressWatcher.shared
     // The focus live activity shows the chosen task's title, which lives here
     @ObservedObject var todoManager = TodoManager.shared
     @State private var hoverTask: Task<Void, Never>?
@@ -78,7 +79,7 @@ struct ContentView: View {
             chinWidth = 640
         } else if showFocusAnnouncement {
             chinWidth += (2 * FocusPhaseLiveActivity.sideWidth + 20)
-        } else if showConverting || showToast {
+        } else if showConverting || showDownloads || showToast {
             chinWidth += (2 * NotchToastView.sideWidth + 20)
         } else if showMeetingCountdown {
             chinWidth += (2 * MeetingLiveActivity.sideWidth + 20)
@@ -111,6 +112,11 @@ struct ContentView: View {
     /// A conversion that keeps going after the notch closed, a Word document say
     private var showConverting: Bool {
         vm.notchState == .closed && !vm.hideOnClosed && !coordinator.expandingView.show && conversions.status != nil
+    }
+
+    private var showDownloads: Bool {
+        vm.notchState == .closed && !vm.hideOnClosed && !coordinator.expandingView.show
+            && !downloads.active.isEmpty && Defaults[.downloadsOnNotch]
     }
 
     /// Confirms an action that happened with the notch closed, such as text copied from the screen
@@ -366,6 +372,10 @@ struct ContentView: View {
                           ConvertingLiveActivity(status: status)
                               .frame(alignment: .center)
                               .transition(.opacity)
+                      } else if showDownloads {
+                          DownloadLiveActivity(downloads: downloads.active)
+                              .frame(alignment: .center)
+                              .transition(.opacity)
                       } else if showToast, let toast = coordinator.toast {
                           NotchToastView(toast: toast)
                               .frame(alignment: .center)
@@ -448,6 +458,7 @@ struct ContentView: View {
                         case .clipboard: ClipboardHistoryView()
                         case .translate: TranslateView()
                         case .folders: FoldersView()
+                        case .assistant: AssistantView()
                         }
                     } else {
                     switch coordinator.currentView {

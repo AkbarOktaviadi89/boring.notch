@@ -34,6 +34,8 @@ import Foundation
     // Folders panel: folders Finder opened lately (Spotlight's last-used date and use count), and opening one in Finder
     func recentFoldersReport(days: Int, with reply: @escaping (String?) -> Void)
     func openFolder(_ path: String, with reply: @escaping (Bool) -> Void)
+    // Screenshots: where macOS saves them (com.apple.screencapture "location"), which the sandbox can't read
+    func screenshotLocation(with reply: @escaping (String?) -> Void)
 }
 
 /*

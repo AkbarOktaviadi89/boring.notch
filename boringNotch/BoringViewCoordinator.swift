@@ -60,6 +60,7 @@ enum NotchOverlay: Equatable {
     case clipboard
     case translate
     case folders
+    case assistant
 }
 
 @MainActor

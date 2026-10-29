@@ -236,6 +236,14 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         reply(Self.run("/usr/bin/open", [path]) != nil)
     }
 
+    /// The folder screenshots are saved to, with ~ expanded; Desktop when it was never changed
+    @objc func screenshotLocation(with reply: @escaping (String?) -> Void) {
+        let configured = UserDefaults(suiteName: "com.apple.screencapture")?.string(forKey: "location")
+            ?? Self.run("/usr/bin/defaults", ["read", "com.apple.screencapture", "location"])?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let path = (configured?.isEmpty == false ? configured! : "~/Desktop") as NSString
+        reply(path.expandingTildeInPath)
+    }
+
     /// Checked here again, not only in the app: the user's own processes outside macOS's system folders
     @objc func forceQuitProcess(_ pid: Int32, with reply: @escaping (Bool) -> Void) {
         guard pid > 1, pid != getpid(),

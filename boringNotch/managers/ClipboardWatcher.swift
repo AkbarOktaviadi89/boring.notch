@@ -84,6 +84,9 @@ final class ClipboardWatcher: ObservableObject {
         if suggestion.kind == .translate {
             TranslateManager.shared.load(suggestion.text)
             BoringViewCoordinator.shared.overlay = .translate
+        } else if suggestion.kind == .summarize {
+            AssistantManager.shared.load(suggestion.text, action: .summarize)
+            BoringViewCoordinator.shared.overlay = .assistant
         } else {
             guard Defaults[.devToolsEnabled] else { return false }
             DevToolsManager.shared.load(suggestion.text, kind: suggestion.kind)
@@ -116,6 +119,10 @@ final class ClipboardWatcher: ObservableObject {
         guard Defaults[.clipboardSuggestions], let text = pasteboard.string(forType: .string) else { return }
         var kind = Defaults[.devToolsEnabled] ? ClipboardDetector.detect(text) : nil
         if kind == .link && !Defaults[.shortLinkSuggestions] { kind = nil }
+        // Long text: a summary helps more than a translation of all of it
+        if kind == nil, Defaults[.assistantSuggestions], AssistantPlan.shouldOfferSummary(text), AssistantManager.isAvailable {
+            kind = .summarize
+        }
         if kind == nil, Defaults[.translateSuggestions],
            TranslationPlan.shouldOffer(text, detected: TranslateManager.detectLanguage(text)) {
             kind = .translate

@@ -36,6 +36,8 @@ LOGIC_SOURCES := \
 	boringNotch/helpers/PasswordGenerator.swift \
 	boringNotch/helpers/NetworkInfo.swift \
 	boringNotch/helpers/FolderRanking.swift \
+	boringNotch/helpers/DownloadNaming.swift \
+	boringNotch/helpers/AssistantPlan.swift \
 	BoringNotchXPCHelper/ProcessGuard.swift
 TEST_SOURCES := $(wildcard Tests/LogicTests/*.swift)
 TEST_BINARY := build/tests/logic-tests

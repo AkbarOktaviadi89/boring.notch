@@ -28,6 +28,12 @@ struct Bookmark: Sendable, Equatable, Codable {
             NSLog("✅ Successfully created bookmark for \(url.path)")
             self.data = bookmark
         } catch {
+            // Files the app may only read (Pictures, for new screenshots) need a read-only bookmark
+            if let readOnly = try? url.bookmarkData(options: [.withSecurityScope, .securityScopeAllowOnlyReadAccess],
+                                                    includingResourceValuesForKeys: nil, relativeTo: nil) {
+                self.data = readOnly
+                return
+            }
             NSLog("❌ Failed to create bookmark for \(url.path): \(error.localizedDescription)")
             throw error
         }

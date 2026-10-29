@@ -7,6 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		FC000000000000000000008D /* AssistantView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC000000000000000000008C /* AssistantView.swift */; };
+		FC000000000000000000008B /* AssistantManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC000000000000000000008A /* AssistantManager.swift */; };
+		FC0000000000000000000089 /* AssistantPlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000088 /* AssistantPlan.swift */; };
+		FC0000000000000000000087 /* DownloadProgressWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000086 /* DownloadProgressWatcher.swift */; };
+		FC0000000000000000000085 /* DownloadNaming.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000084 /* DownloadNaming.swift */; };
+		FC0000000000000000000083 /* ScreenshotWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000082 /* ScreenshotWatcher.swift */; };
 		FC0000000000000000000080 /* FoldersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC000000000000000000007F /* FoldersView.swift */; };
 		FC000000000000000000007E /* FoldersManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC000000000000000000007D /* FoldersManager.swift */; };
 		FC000000000000000000007C /* FolderRanking.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC000000000000000000007B /* FolderRanking.swift */; };
@@ -241,6 +247,12 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		FC000000000000000000008C /* AssistantView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantView.swift; sourceTree = "<group>"; };
+		FC000000000000000000008A /* AssistantManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantManager.swift; sourceTree = "<group>"; };
+		FC0000000000000000000088 /* AssistantPlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantPlan.swift; sourceTree = "<group>"; };
+		FC0000000000000000000086 /* DownloadProgressWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadProgressWatcher.swift; sourceTree = "<group>"; };
+		FC0000000000000000000084 /* DownloadNaming.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadNaming.swift; sourceTree = "<group>"; };
+		FC0000000000000000000082 /* ScreenshotWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotWatcher.swift; sourceTree = "<group>"; };
 		FC000000000000000000007F /* FoldersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoldersView.swift; sourceTree = "<group>"; };
 		FC000000000000000000007D /* FoldersManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoldersManager.swift; sourceTree = "<group>"; };
 		FC000000000000000000007B /* FolderRanking.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderRanking.swift; sourceTree = "<group>"; };
@@ -477,6 +489,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		FC000000000000000000008E /* Assistant */ = {
+			isa = PBXGroup;
+			children = (
+				FC000000000000000000008C /* AssistantView.swift */,
+			);
+			path = Assistant;
+			sourceTree = "<group>";
+		};
 		FC0000000000000000000081 /* Folders */ = {
 			isa = PBXGroup;
 			children = (
@@ -673,6 +693,8 @@
 				FC0000000000000000000071 /* PasswordGenerator.swift */,
 				FC0000000000000000000073 /* NetworkInfo.swift */,
 				FC000000000000000000007B /* FolderRanking.swift */,
+				FC0000000000000000000084 /* DownloadNaming.swift */,
+				FC0000000000000000000088 /* AssistantPlan.swift */,
 				FC0000000000000000000039 /* Notes.swift */,
 				FC0000000000000000000031 /* MonthGrid.swift */,
 				FC0000000000000000000029 /* Flashcards.swift */,
@@ -719,6 +741,7 @@
 				B186542F2C6F455E000B926A /* Notch */,
 				9A0887332C7AFF7E00C160EA /* Tabs */,
 				FC000000000000000000003F /* Notes */,
+				FC000000000000000000008E /* Assistant */,
 				FC0000000000000000000081 /* Folders */,
 				FC000000000000000000006A /* Translate */,
 				FC0000000000000000000063 /* Clipboard */,
@@ -754,6 +777,9 @@
 				FC000000000000000000006D /* TextRecognizer.swift */,
 				FC0000000000000000000075 /* NetworkMonitor.swift */,
 				FC000000000000000000007D /* FoldersManager.swift */,
+				FC0000000000000000000082 /* ScreenshotWatcher.swift */,
+				FC0000000000000000000086 /* DownloadProgressWatcher.swift */,
+				FC000000000000000000008A /* AssistantManager.swift */,
 				FC000000000000000000003B /* NotesManager.swift */,
 				FC0000000000000000000037 /* TodoReminder.swift */,
 				FC000000000000000000002B /* FlashcardManager.swift */,
@@ -1208,6 +1234,12 @@
 				FC000000000000000000003E /* NotesView.swift in Sources */,
 				FC000000000000000000003C /* NotesManager.swift in Sources */,
 				FC000000000000000000003A /* Notes.swift in Sources */,
+				FC000000000000000000008D /* AssistantView.swift in Sources */,
+				FC000000000000000000008B /* AssistantManager.swift in Sources */,
+				FC0000000000000000000089 /* AssistantPlan.swift in Sources */,
+				FC0000000000000000000087 /* DownloadProgressWatcher.swift in Sources */,
+				FC0000000000000000000085 /* DownloadNaming.swift in Sources */,
+				FC0000000000000000000083 /* ScreenshotWatcher.swift in Sources */,
 				FC0000000000000000000080 /* FoldersView.swift in Sources */,
 				FC000000000000000000007E /* FoldersManager.swift in Sources */,
 				FC000000000000000000007C /* FolderRanking.swift in Sources */,
