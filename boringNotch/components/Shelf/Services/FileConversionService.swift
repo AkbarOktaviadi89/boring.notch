@@ -379,17 +379,27 @@ final class FileConversionService: ObservableObject {
     }
 
     /// The app's own sandbox can't reach the user's file, so the file is handed over in a folder the app shares with others
-    private func convertWithApp(_ app: DocumentApp, input: URL, output: URL) async throws {
-        guard let home = getpwuid(getuid())?.pointee.pw_dir else { throw ConversionError.appFailed(app.name, "no home folder") }
-        let workFolder = URL(fileURLWithPath: String(cString: home))
-            .appendingPathComponent(app.sharedFolder)
-            .appendingPathComponent("Boring Notch")
-            .appendingPathComponent(UUID().uuidString)
-        try FileManager.default.createDirectory(at: workFolder, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: workFolder) }
+    /// Office and iWork are sandboxed and can't open the user's file where it is without asking. The file is handed over
+    /// in one fixed folder: Office asks once for access to it and remembers, where a new folder per conversion made
+    /// it ask every time. It sits in Downloads, which Boring Notch may use, so no other app's data folder is touched.
+    static var handoverFolder: URL {
+        let home = getpwuid(getuid()).map { String(cString: $0.pointee.pw_dir) } ?? NSHomeDirectory()
+        return URL(fileURLWithPath: home).appendingPathComponent("Downloads/.boring-notch-converting", isDirectory: true)
+    }
 
-        let handedIn = workFolder.appendingPathComponent(input.lastPathComponent)
-        let handedOut = workFolder.appendingPathComponent(input.deletingPathExtension().lastPathComponent + ".pdf")
+    private func convertWithApp(_ app: DocumentApp, input: URL, output: URL) async throws {
+        let workFolder = Self.handoverFolder
+        try FileManager.default.createDirectory(at: workFolder, withIntermediateDirectories: true)
+        // A tag of its own per conversion, so two at once or leftovers never get mixed up
+        let tag = String(UUID().uuidString.prefix(8))
+        let handedIn = workFolder.appendingPathComponent("\(tag) \(input.lastPathComponent)")
+        let handedOut = workFolder.appendingPathComponent("\(tag) \(input.deletingPathExtension().lastPathComponent).pdf")
+        defer {
+            for file in (try? FileManager.default.contentsOfDirectory(at: workFolder, includingPropertiesForKeys: nil)) ?? []
+            where file.lastPathComponent.hasPrefix(tag) {
+                try? FileManager.default.removeItem(at: file)
+            }
+        }
         try FileManager.default.copyItem(at: input, to: handedIn)
 
         let wasRunning = !NSRunningApplication.runningApplications(withBundleIdentifier: app.rawValue).isEmpty
@@ -409,10 +419,10 @@ final class FileConversionService: ObservableObject {
             throw ConversionError.appFailed(app.name, message)
         }
         // PowerPoint in particular finishes writing after the save command returns: wait for the file to settle
-        let pdf = await Self.waitForFinishedFile(in: workFolder, expected: handedOut, timeout: .seconds(90))
+        let pdf = await Self.waitForFinishedFile(in: workFolder, expected: handedOut, tag: tag, timeout: .seconds(90))
         try? await AppleScriptHelper.executeVoid(Conversions.closeScript(app: app, quit: !wasRunning))
         guard let pdf else {
-            let found = (try? FileManager.default.contentsOfDirectory(atPath: workFolder.path)) ?? []
+            let found = ((try? FileManager.default.contentsOfDirectory(atPath: workFolder.path)) ?? []).filter { $0.hasPrefix(tag) }
             throw ConversionError.appFailed(app.name, "no PDF came out (folder had: \(found.joined(separator: ", ")))")
         }
         try FileManager.default.moveItem(at: pdf, to: output)
@@ -441,14 +451,14 @@ final class FileConversionService: ObservableObject {
     }
 
     /// The expected PDF, or any PDF the app wrote under another name, once its size stops changing
-    private static func waitForFinishedFile(in folder: URL, expected: URL, timeout: Duration) async -> URL? {
+    private static func waitForFinishedFile(in folder: URL, expected: URL, tag: String, timeout: Duration) async -> URL? {
         let deadline = ContinuousClock.now + timeout
         var lastSize = -1
         while ContinuousClock.now < deadline {
             let candidate = FileManager.default.fileExists(atPath: expected.path)
                 ? expected
                 : ((try? FileManager.default.contentsOfDirectory(at: folder, includingPropertiesForKeys: nil)) ?? [])
-                    .first { $0.pathExtension.lowercased() == "pdf" }
+                    .first { $0.pathExtension.lowercased() == "pdf" && $0.lastPathComponent.hasPrefix(tag) }
             if let candidate {
                 let size = (try? candidate.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
                 if size > 0 && size == lastSize { return candidate }

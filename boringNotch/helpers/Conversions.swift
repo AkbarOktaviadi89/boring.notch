@@ -45,14 +45,6 @@ enum DocumentApp: String, CaseIterable {
         case .keynote: return "Keynote"
         }
     }
-
-    /// A group container the app can read and write without asking, so files are handed over there
-    var sharedFolder: String {
-        switch self {
-        case .word, .excel, .powerPoint: return "Library/Group Containers/UBF8T346G9.Office"
-        case .pages, .numbers, .keynote: return "Library/Group Containers/74J34U3R6X.com.apple.iWork"
-        }
-    }
 }
 
 /// In menu order

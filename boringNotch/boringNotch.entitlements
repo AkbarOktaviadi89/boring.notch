@@ -18,11 +18,6 @@
 	<true/>
 	<key>com.apple.security.files.downloads.read-write</key>
 	<true/>
-	<key>com.apple.security.temporary-exception.files.home-relative-path.read-write</key>
-	<array>
-		<string>/Library/Group Containers/UBF8T346G9.Office/Boring Notch/</string>
-		<string>/Library/Group Containers/74J34U3R6X.com.apple.iWork/Boring Notch/</string>
-	</array>
 	<key>com.apple.security.network.client</key>
 	<true/>
 	<key>com.apple.security.network.server</key>
